@@ -1,0 +1,21 @@
+@import 'partials/reset';
+@import 'partials/variables';
+@import 'partials/header';
+@import 'partials/loader';
+@import 'partials/group';
+@import 'partials/knockout';
+@import 'partials/bracket';
+@import 'partials/input';
+@import 'partials/champions';
+
+body {
+    font-family: $base-font;
+    font-size: $base-font-size;
+    color: $base-font-color;
+    background: $background-color;
+}
+
+.container {
+    max-width: 1250px;
+    margin: 0 auto;
+}

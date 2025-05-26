@@ -1,0 +1,189 @@
+@import 'variables';
+
+.knockout-stage {
+    text-align: center;
+    width: 25%;
+    background: #ececec;
+    padding-bottom: 50px;
+    border-left: 0.5px dashed #888;
+    @media (max-width: 1000px) {
+        width: 100%;
+        background: initial;
+        padding-bottom: 10px;
+    }
+    &:nth-of-type(1) {
+        border-left: none;
+    }
+    &:nth-of-type(4) {
+        border-left: none;
+        @media (max-width: 1000px) {
+            padding-bottom: 50px;
+        }
+    }
+    &:nth-of-type(2n) {
+        background: #f3f3f3;
+        @media (max-width: 1000px) {
+            background: initial;
+        }
+    }
+    h2 {
+        font-size: 26px;
+        font-family: $title-font;
+        font-weight: 700;
+        padding: 20px 0 10px;
+        @media (max-width: 1000px) {
+            font-size: 32px;
+        }
+    }
+}
+
+.knockout-container {
+    display: flex;
+    flex-direction: row;
+    padding: 20px;
+    justify-content: space-around;
+    
+    @media (max-width: 1000px) {
+        flex-direction: column;
+        width: 70%;
+        margin: 0 auto;
+    }
+    @media (max-width: 600px) {
+        width: 90%;
+    }
+}
+
+.knockout-round-container {
+    display: flex;
+    position: relative;
+    flex-direction: column;
+    justify-content: space-around;
+    height: 100%;
+    width: 90%;
+    margin: 0 auto;
+    &:nth-of-type(4) {
+        justify-content: center;
+    }
+    @media (max-width: 1000px) {
+        height: auto;
+        width: auto;
+        margin: initial;
+    }
+}
+
+.knockout-match {
+    position: relative;
+    background: #eee;
+    padding: 5px 10px;
+    margin: 10px 5px;
+    text-align: center;
+    z-index: 2;
+    border: 1px solid #ddd;
+    box-shadow: 0px 0px 10px 3px #aaa;
+}
+
+.knockout-team {
+    background: #ddd;
+    padding: 4px;
+    margin: 5px 0;
+    font-size: 18px;
+    position: relative;
+    cursor: pointer;
+    @media (max-width: 1000px) {
+        cursor: initial;
+    }
+    &:hover {
+        .hover-info-container {
+            opacity: 1;
+            display: block;
+            @media (max-width: 1000px) {
+                opacity: 0;
+                display: none;
+            }
+        }
+    }
+    >div {
+        display: flex;
+        justify-content: space-between;
+    }
+    >div:first-child {
+        min-height: 30px;
+    }
+    .knockout-scorers {
+        display: none;
+        font-size: 13px;
+        text-align: left;
+        @media (max-width: 1000px) {
+            display: block;
+        }
+        > div {
+            padding: 3px 7px;
+        }
+    }
+}
+
+.knockout-date {
+    font-size: 15px;
+    font-weight: 700;
+    padding: 5px;
+    @media (max-width: 1000px) {
+        font-size: 17px;
+    }
+}
+
+.knockout-country-name {
+    width: 60%;
+    display: flex;
+    align-items: center;
+    padding-left: 5px;
+}
+
+.knockout-score {
+    width: 40%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 5px;
+}
+
+.knockout-stadium {
+    font-size: 15px;
+    padding: 3px;
+}
+
+.knockout-location {
+    font-size: 13px;
+    padding: 3px;
+}
+
+//Placeholder
+
+.placeholder-name {
+    font-weight: 700;
+    text-align: center;
+    width: initial;
+    margin: 0 auto;
+}
+
+//Hover
+
+.hover-info-container {
+    opacity: 0;
+    display: none;
+    background: #ddd;
+    padding: 10px;
+    position: absolute;
+    z-index: 20;
+    bottom: -40px;
+    right: -20%;
+    transition: opacity 0.2s;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    box-shadow: 0 0 5px 1px #999;
+    >div {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        text-align: left;
+    }
+}
