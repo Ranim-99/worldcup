@@ -2,7 +2,6 @@
   "name": "world-cup-predictor",
   "version": "0.1.0",
   "private": true,
-  "homepage": "http://rzencoder.github.io/world-cup-predictor",
   "dependencies": {
     "@reduxjs/toolkit": "^2.8.2",
     "axios": "^1.9.0",
