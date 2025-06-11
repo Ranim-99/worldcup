@@ -20,6 +20,12 @@ class SubmitPrediction extends Component {
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
+  // Extract ID from URL search parameters
+  getUserIdFromUrl() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('ui');
+  }
+
   // Check if prediction is complete (all group matches + champion)
   isPredictionComplete() {
     // Check if all group matches have scores
@@ -58,9 +64,12 @@ class SubmitPrediction extends Component {
     }
   }
 
-  // Collect all prediction data
+  // Collect all prediction data including user ID
   collectPredictionData() {
+    const userId = this.getUserIdFromUrl();
+    
     const predictionData = {
+      id: userId,
       champion: this.props.champions,
       groups: this.props.groups.map(group => ({
         name: group.name,
@@ -92,6 +101,13 @@ class SubmitPrediction extends Component {
     
     if (completionStatus.status !== 'complete') {
       alert(`Please complete all predictions! ${completionStatus.message}`);
+      return;
+    }
+
+    // Check if user ID exists in URL
+    const userId = this.getUserIdFromUrl();
+    if (!userId) {
+      alert('User ID is missing from the URL. Please make sure you accessed this page with a valid user ID parameter (?ui=yourId)');
       return;
     }
 
@@ -139,6 +155,7 @@ class SubmitPrediction extends Component {
   render() {
     const { isSubmitting, isSubmitted, error } = this.state;
     const completionStatus = this.getCompletionStatus();
+    const userId = this.getUserIdFromUrl();
     
     return (
       <div className="submit-prediction-container">
@@ -150,6 +167,22 @@ class SubmitPrediction extends Component {
             {completionStatus.status === 'incomplete' && '❌'}
             <span>{completionStatus.message}</span>
           </div>
+          
+          {/* Display user ID if available */}
+          {userId && (
+            <div className="user-id-display">
+              <small>User ID: {userId}</small>
+            </div>
+          )}
+          
+          {/* Warning if no user ID */}
+          {!userId && (
+            <div className="user-id-warning">
+              <small style={{ color: '#dc3545' }}>
+                ⚠️ No user ID found in URL. Please access this page with ?ui=yourId parameter.
+              </small>
+            </div>
+          )}
         </div>
 
         {/* Show champion if selected */}
@@ -172,9 +205,9 @@ class SubmitPrediction extends Component {
         </div>
         
         <button
-          className={`submit-prediction-btn ${isSubmitting ? 'loading' : ''} ${isSubmitted ? 'submitted' : ''} ${completionStatus.status !== 'complete' ? 'disabled' : ''}`}
+          className={`submit-prediction-btn ${isSubmitting ? 'loading' : ''} ${isSubmitted ? 'submitted' : ''} ${(completionStatus.status !== 'complete' || !userId) ? 'disabled' : ''}`}
           onClick={this.handleSubmit}
-          disabled={isSubmitting || isSubmitted || completionStatus.status !== 'complete'}
+          disabled={isSubmitting || isSubmitted || completionStatus.status !== 'complete' || !userId}
         >
           {isSubmitting ? (
             <>
@@ -183,6 +216,8 @@ class SubmitPrediction extends Component {
             </>
           ) : isSubmitted ? (
             '✓ Prediction Submitted!'
+          ) : !userId ? (
+            'Missing User ID in URL'
           ) : completionStatus.status === 'complete' ? (
             'Submit My Complete Prediction'
           ) : (
