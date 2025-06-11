@@ -11,6 +11,7 @@ import Header from "../components/Header";
 import { fetchData, fetchPredictor } from "../actions/index";
 import { advance } from "../data/matchData";
 import { API2014, API2018 } from "../constants/api";
+import SubmitPrediction from "./SubmitPrediction";
 
 const mapStateToProps = (state) => ({
   groups: state.groups,
@@ -194,6 +195,7 @@ class App extends Component {
           keyDownCloseInfo={this.keyDownCloseInfo}
         />
         <div className="container">{displayStage}</div>
+        <SubmitPrediction />
       </div>
     );
   }
