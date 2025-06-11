@@ -20,7 +20,7 @@ const Header = (props) => {
 
   return (
     <div>
-      <header>AHW</header>
+      {/* <header>AHW</header> */}
      {/*  <a href="https://github.com/rzencoder/world-cup-predictor" className="github-link"><i className="fab fa-github" /></a> */}
       <h1 className="title">FIFA Club World Cup {props.year}</h1>
       { showInfo }

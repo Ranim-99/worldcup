@@ -160,7 +160,7 @@ class SubmitPrediction extends Component {
     return (
       <div className="submit-prediction-container">
         <div className="prediction-status">
-          <h3>Prediction Status</h3>
+          {/* <h3>Prediction Status</h3> */}
           <div className={`status-indicator ${completionStatus.status}`}>
             {completionStatus.status === 'complete' && '✅'}
             {completionStatus.status === 'partial' && '⚠️'}
@@ -169,11 +169,11 @@ class SubmitPrediction extends Component {
           </div>
           
           {/* Display user ID if available */}
-          {userId && (
+          {/* {userId && (
             <div className="user-id-display">
               <small>User ID: {userId}</small>
             </div>
-          )}
+          )} */}
           
           {/* Warning if no user ID */}
           {!userId && (
