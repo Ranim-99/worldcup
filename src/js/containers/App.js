@@ -68,7 +68,7 @@ class App extends Component {
       this.props.fetchData(API2018);
       this.props.fetchData(API2018);
     } else if (this.state.year === "2018 Predictor") {
-      this.props.fetchPredictor(API2018);
+      this.props.fetchPredictor("https://raw.githubusercontent.com/SamehBilal/fcwc/main/public/worldcup2.json");
     }
   }
 

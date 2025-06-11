@@ -1,8 +1,7 @@
 import React from 'react';
-import ReactCountryFlag from 'react-country-flag';
 
-const FlagIcon = ({ code, size = '1x', ...props }) => {
-  // Convert size prop to style for react-country-flag
+const ClubFlagIcon = ({ code, size = '1x', ...props }) => {
+  // Map size keyword to actual pixels
   const getSizeStyle = (size) => {
     const sizeMap = {
       '1x': '1em',
@@ -15,18 +14,18 @@ const FlagIcon = ({ code, size = '1x', ...props }) => {
   };
 
   return (
-    <ReactCountryFlag
-      countryCode={code}
-      svg
+    <img
+      src={code?.url}
+      alt={code?.title}
+      title={code?.title}
       style={{
         width: getSizeStyle(size),
         height: getSizeStyle(size),
+        objectFit: 'contain',
       }}
-      title={code}
       {...props}
     />
   );
 };
 
-export default FlagIcon;
-
+export default ClubFlagIcon;

@@ -16,15 +16,16 @@ const Header = (props) => {
     </div>
   );
 
-  const showInfo = props.showInfo ? infoPanel : '';
+  const showInfo = props.showInfo ? /*infoPanel*/'' : '';
 
   return (
     <div>
-      <a href="https://github.com/rzencoder/world-cup-predictor" className="github-link"><i className="fab fa-github" /></a>
-      <h1 className="title">World Cup {props.year}</h1>
+      <header>AHW</header>
+     {/*  <a href="https://github.com/rzencoder/world-cup-predictor" className="github-link"><i className="fab fa-github" /></a> */}
+      <h1 className="title">FIFA Club World Cup {props.year}</h1>
       { showInfo }
       <div className="container">
-        <form className="year-selector" onSubmit={props.handleYearSubmit}>
+        {/* <form className="year-selector" onSubmit={props.handleYearSubmit}>
           <label htmlFor="year">
             Select Year
             <select name="year" value={props.year} onChange={props.handleYearChange}>
@@ -34,7 +35,8 @@ const Header = (props) => {
             </select>
           </label>
           <input className="btn-submit" type="submit" value="Submit" />
-        </form>
+        </form> */}
+
         <div className="round-selector">
           <div
             id="groupToggle"
