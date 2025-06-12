@@ -31,7 +31,7 @@ class App extends Component {
     this.state = {
       knockout: false,
       showInfo: true,
-      year: "2018 Predictor",
+      year: "2025 Predictor",
     };
     this.toggleRound = this.toggleRound.bind(this);
     this.handleYearChange = this.handleYearChange.bind(this);
