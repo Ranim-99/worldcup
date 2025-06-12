@@ -194,8 +194,9 @@ class App extends Component {
           keyDownToggle={this.keyDownToggle}
           keyDownCloseInfo={this.keyDownCloseInfo}
         />
-        <div className="container">{displayStage}</div>
+        <div className="container">{displayStage}
         <SubmitPrediction />
+        </div>
       </div>
     );
   }
