@@ -26,26 +26,42 @@ class SubmitPrediction extends Component {
     return urlParams.get('ui');
   }
 
-  // Check if prediction is complete (all group matches + champion)
+  // Check if all knockout matches have scores (non-null values)
+  areKnockoutsComplete() {
+    console.log('this.props.knockouts', this.props.knockouts)
+    return this.props.knockouts.every(round =>
+      round.matches.every(match => 
+        match.score1 !== null && match.score2 !== null &&
+        match.score1 !== undefined && match.score2 !== undefined
+      )
+    );
+  }
+
+  // Check if prediction is complete (all group matches + all knockouts + champion)
   isPredictionComplete() {
     // Check if all group matches have scores
     const allGroupMatchesComplete = this.props.groups.every(group =>
       group.matches.every(match => 
-        match.score1 !== null && match.score2 !== null
+        match.score1 !== null && match.score2 !== null &&
+        match.score1 !== undefined && match.score2 !== undefined
       )
     );
+
+    // Check if all knockout matches have scores
+    const allKnockoutMatchesComplete = this.areKnockoutsComplete();
 
     // Check if knockout prediction is complete (has champion)
     const knockoutComplete = this.props.champions && this.props.champions.name;
 
-    return allGroupMatchesComplete && knockoutComplete;
+    return allGroupMatchesComplete && allKnockoutMatchesComplete && knockoutComplete;
   }
 
   // Check if only groups are complete (for partial submission option)
   areGroupsComplete() {
     return this.props.groups.every(group =>
       group.matches.every(match => 
-        match.score1 !== null && match.score2 !== null
+        match.score1 !== null && match.score2 !== null &&
+        match.score1 !== undefined && match.score2 !== undefined
       )
     );
   }
@@ -53,12 +69,15 @@ class SubmitPrediction extends Component {
   // Check completion status for display
   getCompletionStatus() {
     const groupsComplete = this.areGroupsComplete();
-    const knockoutComplete = this.props.champions && this.props.champions.name;
+    const knockoutsComplete = this.areKnockoutsComplete();
+    const championSelected = this.props.champions && this.props.champions.name;
     
-    if (groupsComplete && knockoutComplete) {
+    if (groupsComplete && knockoutsComplete && championSelected) {
       return { status: 'complete', message: 'All predictions complete!' };
-    } else if (groupsComplete && !knockoutComplete) {
+    } else if (groupsComplete && !knockoutsComplete) {
       return { status: 'partial', message: 'Group stage complete - finish knockout predictions!' };
+    } else if (groupsComplete && knockoutsComplete && !championSelected) {
+      return { status: 'partial', message: 'Knockout matches complete - champion will be determined automatically!' };
     } else {
       return { status: 'incomplete', message: 'Complete group stage predictions first' };
     }
@@ -139,8 +158,13 @@ class SubmitPrediction extends Component {
         isSubmitted: true 
       });
 
-      // Optional: Show success message
-      alert('Prediction submitted successfully!');
+      // Show success message
+      alert('Prediction submitted successfully! You will be redirected in 30 seconds.');
+
+      // Redirect after 30 seconds
+      setTimeout(() => {
+        window.location.href = 'https://gaming.arabhardware.net';
+      }, 3000000000);
 
     } catch (error) {
       console.error('Error submitting prediction:', error);
@@ -160,20 +184,12 @@ class SubmitPrediction extends Component {
     return (
       <div className="submit-prediction-container">
         <div className="prediction-status">
-          {/* <h3>Prediction Status</h3> */}
           <div className={`status-indicator ${completionStatus.status}`}>
             {completionStatus.status === 'complete' && '✅'}
             {completionStatus.status === 'partial' && '⚠️'}
             {completionStatus.status === 'incomplete' && '❌'}
             <span>{completionStatus.message}</span>
           </div>
-          
-          {/* Display user ID if available */}
-          {/* {userId && (
-            <div className="user-id-display">
-              <small>User ID: {userId}</small>
-            </div>
-          )} */}
           
           {/* Warning if no user ID */}
           {!userId && (
@@ -198,11 +214,46 @@ class SubmitPrediction extends Component {
             <span className="progress-icon">{this.areGroupsComplete() ? '✅' : '⭕'}</span>
             <span>Group Stage Predictions</span>
           </div>
-          <div className={`progress-item ${this.props.champions && this.props.champions.name ? 'complete' : 'incomplete'}`}>
-            <span className="progress-icon">{this.props.champions && this.props.champions.name ? '✅' : '⭕'}</span>
+          <div className={`progress-item ${this.areKnockoutsComplete() ? 'complete' : 'incomplete'}`}>
+            <span className="progress-icon">{this.areKnockoutsComplete() ? '✅' : '⭕'}</span>
             <span>Knockout Stage Predictions</span>
           </div>
+          <div className={`progress-item ${this.props.champions && this.props.champions.name ? 'complete' : 'incomplete'}`}>
+            <span className="progress-icon">{this.props.champions && this.props.champions.name ? '✅' : '⭕'}</span>
+            <span>Champion Selection</span>
+          </div>
         </div>
+
+        {/* Show redirect countdown if submitted */}
+        {isSubmitted && (
+          <div style={{
+            background: '#d4edda',
+            border: '1px solid #c3e6cb',
+            padding: '15px',
+            margin: '15px 0',
+            borderRadius: '4px',
+            textAlign: 'center'
+          }}>
+            <strong>🎉 Prediction Submitted Successfully!</strong>
+            <div style={{ marginTop: '10px', fontSize: '14px' }}>
+              You will be redirected to gaming.arabhardware.net in 30 seconds...
+            </div>
+            <button 
+              onClick={() => window.location.href = 'https://gaming.arabhardware.net'}
+              style={{
+                marginTop: '10px',
+                padding: '8px 16px',
+                background: '#28a745',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              Go Now
+            </button>
+          </div>
+        )}
         
         <button
           className={`submit-prediction-btn ${isSubmitting ? 'loading' : ''} ${isSubmitted ? 'submitted' : ''} ${(completionStatus.status !== 'complete' || !userId) ? 'disabled' : ''}`}
@@ -220,8 +271,10 @@ class SubmitPrediction extends Component {
             'Missing User ID in URL'
           ) : completionStatus.status === 'complete' ? (
             'Submit My Complete Prediction'
+          ) : completionStatus.status === 'partial' ? (
+            'Complete All Stages First'
           ) : (
-            `Complete ${completionStatus.status === 'incomplete' ? 'Group Stage' : 'Knockout Stage'} First`
+            'Complete Group Stage First'
           )}
         </button>
 

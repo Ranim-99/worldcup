@@ -2,7 +2,7 @@ import processInitialState from '../helpers/processInitialState';
 import processInitialPredictorState from '../helpers/processInitialPredictorState';
 import { KNOCKOUT_DATA_FETCHED, UPDATE_QUALIFIER, UPDATE_KNOCKOUT,
   UPDATE_SCORE, DATA_FETCHED, LOADING_DATA, LOADING_ERROR, REMOVE_TEAM,
-  UPDATE_CHAMPIONS, REMOVE_CHAMPIONS } from '../constants/action-types';
+  UPDATE_CHAMPIONS, REMOVE_CHAMPIONS, UPDATE_KNOCKOUT_SCORE } from '../constants/action-types';
 
 export function loadingError(bool) {
   return {
@@ -75,19 +75,36 @@ export function updateChampions(team) {
   };
 }
 
-function updateKnock(teams, index1, round, home) {
+function updateKnock(teams, index1, round, home, scores) {
   return {
     type: UPDATE_KNOCKOUT,
     teams,
     index1,
     round,
     home,
+    scores,
   };
 }
 
-export function updateKnockout(teams, index1, round, home) {
+export function updateKnockout(teams, index1, round, home, scores) {
   return (dispatch) => {
-    dispatch(updateKnock(teams, index1, round, home));
+    dispatch(updateKnock(teams, index1, round, home, scores));
+  };
+}
+
+function updateKnockScore(round, matchIndex, score1, score2) {
+  return {
+    type: UPDATE_KNOCKOUT_SCORE,
+    round,
+    matchIndex,
+    score1,
+    score2,
+  };
+}
+
+export function updateKnockoutScore(round, matchIndex, score1, score2) {
+  return (dispatch) => {
+    dispatch(updateKnockScore(round, matchIndex, score1, score2));
   };
 }
 

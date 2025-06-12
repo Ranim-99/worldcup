@@ -17,8 +17,8 @@ class GroupGames extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      homeScore: '',
-      awayScore: '',
+      homeScore: this.props.data.score1 !== null ? this.props.data.score1 : '',
+      awayScore: this.props.data.score2 !== null ? this.props.data.score2 : '',
     };
     this.handleInputChange = this.handleInputChange.bind(this);
     this.handleClick = this.handleClick.bind(this);
@@ -28,10 +28,30 @@ class GroupGames extends Component {
     this.score2Input = React.createRef();
   }
 
+  componentDidMount() {
+    // Initialize state with Redux values
+    this.setState({
+      homeScore: this.props.data.score1 !== null ? this.props.data.score1 : '',
+      awayScore: this.props.data.score2 !== null ? this.props.data.score2 : '',
+    });
+  }
+
+  componentDidUpdate(prevProps) {
+    // Update local state when Redux state changes
+    if (prevProps.data.score1 !== this.props.data.score1 || 
+        prevProps.data.score2 !== this.props.data.score2) {
+      this.setState({
+        homeScore: this.props.data.score1 !== null ? this.props.data.score1 : '',
+        awayScore: this.props.data.score2 !== null ? this.props.data.score2 : '',
+      });
+    }
+  }
+
   handleInputChange(e) {
     const name = e.target.name;
+    const value = e.target.value === '' ? null : parseInt(e.target.value, 10);
     const home = name === 'homeScore' ? 1 : 2;
-    this.updateScore(name, e.target.value, home);
+    this.updateScore(name, value, home);
   }
 
   handleKeyDown(e) {
@@ -46,8 +66,13 @@ class GroupGames extends Component {
 
   updateScore(name, value, home) {
     this.setState({
-      [name]: value,
-    }, () => this.updateTable(value, home));
+      [name]: value === null ? '' : value,
+    }, () => {
+      // Only update Redux if value is not null
+      if (value !== null) {
+        this.updateTable(value, home);
+      }
+    });
   }
 
   updateTable(value, home) {
@@ -61,9 +86,9 @@ class GroupGames extends Component {
     const id = e.currentTarget.parentNode.id;
     const ref = id === 'home' ? this.score1Input.current.value : this.score2Input.current.value;
     // If value was empty convert to 0
-    const input = ref === '' ? 0 : ref;
+    const input = ref === '' ? 0 : parseInt(ref, 10);
     // Add or remove 1 and prevent negative number;
-    let value = incOrDec === 'up' ? parseInt(input, 10) + 1 : parseInt(input, 10) - 1;
+    let value = incOrDec === 'up' ? input + 1 : input - 1;
     value = value < 0 ? 0 : value;
     const name = id + 'Score';
     const home = id === 'home' ? 1 : 2;
@@ -164,7 +189,6 @@ GroupGames.propTypes = {
   updateScore: PropTypes.func.isRequired,
   group: PropTypes.number.isRequired,
   index: PropTypes.number.isRequired,
-
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(GroupGames);

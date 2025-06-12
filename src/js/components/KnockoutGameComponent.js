@@ -124,18 +124,24 @@ class KnockoutGameComponent extends Component {
 
     const stadium = this.props.data.stadium ? this.props.data.stadium.name : '';
 
-    // Checking if result has actually been played and display score else display prediction
-    const homeScore = this.props.data.score1 === null &&
-      this.props.data.team1.name !== null &&
-      this.props.data.team2.name !== null ?
-      this.renderHomePrediction() :
-      <span>{KnockoutGameComponent.calculateScore(this.props.data, 1)}</span>;
+    // Check if this is an actual played match (has goals data or is marked as played)
+    // vs a prediction match (user can still edit)
+    const isActualResult = this.props.data.goals1 || this.props.data.goals2 || this.props.data.isPlayed;
+    
+    // Show prediction inputs if:
+    // 1. Both teams exist
+    // 2. It's NOT an actual played match (just a prediction)
+    const showPredictionInputs = this.props.data.team1.name !== null && 
+                                this.props.data.team2.name !== null && 
+                                !isActualResult;
 
-    const awayScore = this.props.data.score2 === null &&
-      this.props.data.team1.name !== null &&
-      this.props.data.team2.name !== null ?
+    const homeScore = showPredictionInputs ?
+      this.renderHomePrediction() :
+      <span>{this.props.data.score1 !== null ? KnockoutGameComponent.calculateScore(this.props.data, 1) : '-'}</span>;
+
+    const awayScore = showPredictionInputs ?
       this.renderAwayPrediction() :
-      <span>{KnockoutGameComponent.calculateScore(this.props.data, 2)}</span>;
+      <span>{this.props.data.score2 !== null ? KnockoutGameComponent.calculateScore(this.props.data, 2) : '-'}</span>;
 
     return (
       <div>
@@ -191,7 +197,6 @@ KnockoutGameComponent.propTypes = {
   score1Input: PropTypes.object.isRequired,
   score2Input: PropTypes.object.isRequired,
   handleKeyDown: PropTypes.func.isRequired,
-
 };
 
 export default KnockoutGameComponent;
