@@ -1,12 +1,14 @@
-@import 'partials/reset';
-@import 'partials/variables';
-@import 'partials/header';
-@import 'partials/loader';
-@import 'partials/group';
-@import 'partials/knockout';
-@import 'partials/bracket';
-@import 'partials/input';
-@import 'partials/champions';
+@use 'partials/reset' as *;
+@use 'partials/variables' as *;
+@use 'partials/header' as *;
+@use 'partials/loader' as *;
+@use 'partials/group' as *;
+@use 'partials/knockout' as *;
+@use 'partials/bracket' as *;
+@use 'partials/input' as *;
+@use 'partials/champions' as *;
+@use 'partials/navbar' as *;
+@use 'partials/submit' as *;
 
 body {
     font-family: $base-font;

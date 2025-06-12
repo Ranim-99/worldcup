@@ -1,0 +1,169 @@
+@use './variables' as *;
+@use 'sass:color';
+
+
+.submit-prediction-container {
+  padding: 20px;
+  background: #222;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+  color: $base-font-color;
+  font-family: $base-font;
+
+  .prediction-status {
+    margin-bottom: 20px;
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: bold;
+      font-size: 18px;
+
+      &.complete {
+        color: #28a745; // green
+      }
+      &.partial {
+        color: #ffc107; // yellow
+      }
+      &.incomplete {
+        color: #dc3545; // red
+      }
+    }
+
+    .user-id-warning {
+      margin-top: 5px;
+      font-size: 14px;
+    }
+  }
+
+  .champion-display {
+    background-color: #111;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-left: 4px solid $bracket-color;
+    h3 {
+      font-family: $title-font;
+      color: $bracket-color;
+      margin: 0;
+    }
+  }
+
+  .progress-indicators {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+
+    .progress-item {
+      flex: 1;
+      min-width: 180px;
+      margin: 10px;
+      padding: 12px;
+      background: #1a1a1a;
+      border-radius: 6px;
+      text-align: center;
+      font-size: 14px;
+      border: 1px solid #444;
+
+      &.complete {
+        border-color: #28a745;
+        color: #28a745;
+      }
+
+      &.incomplete {
+        border-color: #dc3545;
+        color: #dc3545;
+      }
+
+      .progress-icon {
+        font-size: 20px;
+        display: block;
+        margin-bottom: 5px;
+      }
+    }
+  }
+
+  .submit-prediction-btn {
+    background-color: $bracket-color;
+    color: #fff;
+    font-weight: bold;
+    padding: 12px 24px;
+    font-size: 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    width: 100%;
+    max-width: 400px;
+    display: block;
+    margin: 20px auto;
+
+    &:hover:not(:disabled) {
+      background-color: color.adjust($bracket-color, $lightness: -10%);
+    }
+
+    &.loading {
+      opacity: 0.8;
+      pointer-events: none;
+    }
+
+    &.submitted {
+      background-color: #28a745;
+    }
+
+    &.disabled {
+      background-color: #666;
+      cursor: not-allowed;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  }
+
+  .error-message {
+    color: #dc3545;
+    margin-top: 15px;
+    font-size: 14px;
+    text-align: center;
+  }
+
+  .success-box {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    padding: 15px;
+    margin: 15px 0;
+    border-radius: 4px;
+    text-align: center;
+    color: #155724;
+
+    button {
+      margin-top: 10px;
+      padding: 8px 16px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+
+      &:hover {
+        background-color: color.adjust(#28a745, $lightness: -10%);
+      }
+    }
+  }
+}

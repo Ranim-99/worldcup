@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import Navbar from './Navbar';
 
 const Header = (props) => {
   const infoPanel = (
@@ -22,6 +23,7 @@ const Header = (props) => {
     <div>
       {/* <header>AHW</header> */}
      {/*  <a href="https://github.com/rzencoder/world-cup-predictor" className="github-link"><i className="fab fa-github" /></a> */}
+     <Navbar />
       <h1 className="title">FIFA Club World Cup {props.year}</h1>
       { showInfo }
       <div className="container">

@@ -1,0 +1,53 @@
+@use "./variables" as *;
+@use 'sass:color';
+
+.navbar {
+  background-color: $background-color;
+  width: 100%;
+
+  &__container {
+    max-width: 1250px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    padding: 16px 24px;
+  }
+
+  &__logo {
+    a {
+      display: inline-block;
+      img {
+        height: 32px;
+        width: auto;
+      }
+    }
+  }
+
+  &__nav {
+    margin-left: auto;
+    display: flex;
+    gap: 24px;
+  }
+
+  &__link {
+    position: relative;
+    color: $base-font-color;
+    text-decoration: none;
+    padding-bottom: 4px;
+    transition: color 0.2s ease-in-out;
+
+    &:hover {
+      color: color.adjust($base-font-color, $lightness: 20%);
+    }
+
+    &--active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 2px;
+      width: 100%;
+      background-color: $bracket-color;
+    }
+  }
+}
