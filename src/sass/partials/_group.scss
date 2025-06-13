@@ -36,7 +36,7 @@
 .group-table {
   margin: 10px auto;
   width: 90%;
-  border: solid 1px $bracket-color;       // #6F5D25
+  border: solid 1px $bracket-color;
   border-radius: 0.5rem !important;
 
   thead {
@@ -99,7 +99,8 @@
 .group-time {
     width: 20%;
     font-weight: 700;
-    background: color.adjust($bracket-color, $lightness: 10%);
+    background: #b4deec;
+    // background: color.adjust($bracket-color, $lightness: 10%);
     padding: 5px;
     margin: 0 5px;
     height: 17px;
@@ -130,6 +131,7 @@
 .group-line {
     width: 60%;
     margin: 10px auto;
-    background: $base-font-color;
+    // background: $base-font-color;
+    background: $bracket-color;
     height: 1px;
 }

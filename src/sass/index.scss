@@ -1,3 +1,5 @@
+// To watch
+// npx sass --watch src/sass/index.scss:src/sass/index.css
 @use 'partials/reset' as *;
 @use 'partials/variables' as *;
 @use 'partials/header' as *;
@@ -14,7 +16,23 @@ body {
     font-family: $base-font;
     font-size: $base-font-size;
     color: $base-font-color;
-    background: $background-color;
+    background-color: $background-color;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position-x: center;
+    background-image: url("../../public/FIFA\ Club\ World\ Cup_1920x1080.jpg");
+    background-attachment: fixed;
+    background-blend-mode: multiply;
+}
+
+.custom-bg-2 {
+    background-color: rgb(112, 110, 110);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position-x: center;
+    background-image: url("../../public/FIFA\ Club\ World\ Cup_1920x1080.jpg");
+    background-attachment: fixed;
+    background-blend-mode: multiply;
 }
 
 .container {

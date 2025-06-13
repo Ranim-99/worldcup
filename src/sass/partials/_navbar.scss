@@ -1,53 +1,252 @@
-@use "./variables" as *;
-@use 'sass:color';
-
 .navbar {
-  background-color: $background-color;
+  background-blend-mode: multiply;
+  background-color: #313131;
+  background-image: radial-gradient(99.7% 118.58% at 47.86% -54.11%, #fcaf40bd 42.73%, #1a000e8a 77.16%, #000);
   width: 100%;
+  border-bottom: 1px solid #edeef088;
+  font-size: .875rem;
+  position: relative;
+  z-index: 1000;
+}
 
-  &__container {
-    max-width: 1250px;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    padding: 16px 24px;
+.navbar__container {
+  max-width: 1250px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+}
+
+// Mobile container layout adjustment
+@media (max-width: 768px) {
+  .navbar__container {
+    justify-content: flex-start;
+    gap: 16px;
+  }
+}
+
+.navbar__logo a {
+  display: inline-block;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-weight: bold;
+}
+
+.navbar__logo img {
+  height: 32px;
+  width: auto;
+}
+
+.navbar__logo span {
+  color: #ffffff;
+}
+
+.navbar__nav {
+  margin-left: 20px;
+  display: flex;
+  gap: 24px;
+}
+
+.navbar__link {
+  position: relative;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  padding: 0 10px;
+  line-height: 2rem;
+  border-radius: .5rem;
+  transition: color 0.2s ease-in-out;
+  font-weight: bold;
+}
+
+.navbar__link:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.navbar__link--active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 100%;
+  background-color: #fcaf40;
+}
+
+/* Mobile toggle button - moved to left */
+.navbar__mobile-toggle {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  z-index: 1001;
+  order: -1; // This moves it to the left of the logo
+}
+
+.navbar__hamburger {
+  display: flex;
+  flex-direction: column;
+  width: 24px;
+  height: 18px;
+  position: relative;
+}
+
+.navbar__hamburger span {
+  display: block;
+  height: 2px;
+  width: 100%;
+  background-color: #ffffff;
+  margin-bottom: 4px;
+  transition: all 0.3s ease;
+  transform-origin: center;
+}
+
+.navbar__hamburger span:last-child {
+  margin-bottom: 0;
+}
+
+.navbar__hamburger--active span:first-child {
+  transform: rotate(45deg) translate(6px, 6px);
+}
+
+.navbar__hamburger--active span:nth-child(2) {
+  opacity: 0;
+}
+
+.navbar__hamburger--active span:last-child {
+  transform: rotate(-45deg) translate(6px, -6px);
+}
+
+/* Mobile menu overlay */
+.navbar__mobile-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.navbar__mobile-overlay--active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Mobile menu */
+.navbar__mobile-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 280px;
+  height: 100vh;
+  background: linear-gradient(135deg, #313131 0%, #2a2a2a 100%);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.navbar__mobile-menu--active {
+  transform: translateX(0);
+}
+
+// Mobile header - adjusted layout for left-aligned close button
+.navbar__mobile-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; // Changed from space-between
+  gap: 16px; // Added gap between close button and logo
+  padding: 16px 24px;
+  border-bottom: 1px solid #edeef088;
+}
+
+.navbar__mobile-close {
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  order: -1; // This moves the close button to the left of the logo
+}
+
+.navbar__mobile-close:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.navbar__mobile-nav {
+  flex: 1;
+  padding: 24px 0;
+  display: flex;
+  flex-direction: column;
+  width: 80%;
+  background: linear-gradient(135deg, #171717 0%, #2a2a2a 100%);
+}
+
+.navbar__mobile-link {
+  display: block;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  padding: 16px 24px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+}
+
+.navbar__mobile-link:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.navbar__mobile-link--active {
+  color: #ffffff;
+  background-color: rgba(252, 175, 64, 0.1);
+  border-left-color: #fcaf40;
+}
+
+/* Responsive breakpoints */
+@media (max-width: 768px) {
+  .navbar__nav--desktop {
+    display: none;
   }
 
-  &__logo {
-    a {
-      display: inline-block;
-      img {
-        height: 32px;
-        width: auto;
-      }
-    }
+  .navbar__mobile-toggle {
+    display: block;
   }
 
-  &__nav {
-    margin-left: auto;
-    display: flex;
-    gap: 24px;
+  .navbar__container {
+    padding: 12px 16px;
   }
 
-  &__link {
-    position: relative;
-    color: $base-font-color;
-    text-decoration: none;
-    padding-bottom: 4px;
-    transition: color 0.2s ease-in-out;
+  .navbar__logo img {
+    height: 28px;
+  }
+}
 
-    &:hover {
-      color: color.adjust($base-font-color, $lightness: 20%);
-    }
+@media (max-width: 480px) {
+  .navbar__mobile-menu {
+    width: 100%;
+  }
 
-    &--active::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      height: 2px;
-      width: 100%;
-      background-color: $bracket-color;
-    }
+  .navbar__container {
+    padding: 12px 12px;
   }
 }

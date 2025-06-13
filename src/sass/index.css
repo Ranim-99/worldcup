@@ -59,8 +59,7 @@ table {
   font-weight: 700;
   padding: 20px;
   text-align: center;
-  background: #ccc;
-  box-shadow: 0 6px 0 0 white, 0 12px 0 0 #4949ff, 0 18px 0 0 #f63333;
+  color: white;
   text-shadow: 3px 3px 3px #333;
 }
 
@@ -332,7 +331,7 @@ table {
 .group-time {
   width: 20%;
   font-weight: 700;
-  background: rgb(149.25, 125.0472972973, 49.75);
+  background: #b4deec;
   padding: 5px;
   margin: 0 5px;
   height: 17px;
@@ -363,7 +362,7 @@ table {
 .group-line {
   width: 60%;
   margin: 10px auto;
-  background: #fff;
+  background: #6F5D25;
   height: 1px;
 }
 
@@ -578,7 +577,7 @@ table {
   width: 13%;
   left: -13%;
   top: 50%;
-  border-top: 3px solid #6F5D25;
+  border-top: 1px solid #fff;
 }
 @media (max-width: 1000px) {
   .bracket-team::before {
@@ -591,8 +590,8 @@ table {
   display: block;
   width: 10px;
   right: -10px;
-  border-color: #6F5D25;
-  border-width: 3px;
+  border-color: #fff;
+  border-width: 1px;
 }
 @media (max-width: 1000px) {
   .bracket-team::after {
@@ -750,6 +749,7 @@ table {
   background-color: rgb(49, 49, 49);
   background-image: radial-gradient(99.7% 118.58% at 47.86% -54.11%, rgba(252, 175, 64, 0.74) 42.73%, rgba(26, 0, 14, 0.54) 77.16%, rgb(0, 0, 0) 100%);
   background-blend-mode: multiply;
+  color: #fff;
   border: 1px solid #fff;
   border-radius: 0.5rem;
   padding: 10px;
@@ -789,38 +789,72 @@ table {
 }
 
 .navbar {
-  background-color: #333;
+  background-blend-mode: multiply;
+  background-color: #313131;
+  background-image: radial-gradient(99.7% 118.58% at 47.86% -54.11%, rgba(252, 175, 64, 0.7411764706) 42.73%, rgba(26, 0, 14, 0.5411764706) 77.16%, #000);
   width: 100%;
+  border-bottom: 1px solid rgba(237, 238, 240, 0.5333333333);
+  font-size: 0.875rem;
+  position: relative;
+  z-index: 1000;
 }
+
 .navbar__container {
   max-width: 1250px;
   margin: 0 auto;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 16px 24px;
+}
+
+@media (max-width: 768px) {
+  .navbar__container {
+    justify-content: flex-start;
+    gap: 16px;
+  }
 }
 .navbar__logo a {
   display: inline-block;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-weight: bold;
 }
-.navbar__logo a img {
+
+.navbar__logo img {
   height: 32px;
   width: auto;
 }
+
+.navbar__logo span {
+  color: #ffffff;
+}
+
 .navbar__nav {
-  margin-left: auto;
+  margin-left: 20px;
   display: flex;
   gap: 24px;
 }
+
 .navbar__link {
   position: relative;
-  color: #fff;
+  color: rgba(255, 255, 255, 0.8);
   text-decoration: none;
-  padding-bottom: 4px;
+  padding: 0 10px;
+  line-height: 2rem;
+  border-radius: 0.5rem;
   transition: color 0.2s ease-in-out;
+  font-weight: bold;
 }
+
 .navbar__link:hover {
-  color: hsl(0, 0%, 120%);
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.1);
 }
+
 .navbar__link--active::after {
   content: "";
   position: absolute;
@@ -828,35 +862,211 @@ table {
   left: 0;
   height: 2px;
   width: 100%;
-  background-color: #6F5D25;
+  background-color: #fcaf40;
 }
 
-.submit-prediction-container {
-  padding: 20px;
-  background: #222;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
-  color: #fff;
-  font-family: "Oxygen", arial, sans-serif;
+/* Mobile toggle button - moved to left */
+.navbar__mobile-toggle {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  z-index: 1001;
+  order: -1;
 }
-.submit-prediction-container .prediction-status {
-  margin-bottom: 20px;
+
+.navbar__hamburger {
+  display: flex;
+  flex-direction: column;
+  width: 24px;
+  height: 18px;
+  position: relative;
 }
-.submit-prediction-container .prediction-status .status-indicator {
+
+.navbar__hamburger span {
+  display: block;
+  height: 2px;
+  width: 100%;
+  background-color: #ffffff;
+  margin-bottom: 4px;
+  transition: all 0.3s ease;
+  transform-origin: center;
+}
+
+.navbar__hamburger span:last-child {
+  margin-bottom: 0;
+}
+
+.navbar__hamburger--active span:first-child {
+  transform: rotate(45deg) translate(6px, 6px);
+}
+
+.navbar__hamburger--active span:nth-child(2) {
+  opacity: 0;
+}
+
+.navbar__hamburger--active span:last-child {
+  transform: rotate(-45deg) translate(6px, -6px);
+}
+
+/* Mobile menu overlay */
+.navbar__mobile-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.navbar__mobile-overlay--active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Mobile menu */
+.navbar__mobile-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 280px;
+  height: 100vh;
+  background: linear-gradient(135deg, #313131 0%, #2a2a2a 100%);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.navbar__mobile-menu--active {
+  transform: translateX(0);
+}
+
+.navbar__mobile-header {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: flex-start;
+  gap: 16px;
+  padding: 16px 24px;
+  border-bottom: 1px solid rgba(237, 238, 240, 0.5333333333);
+}
+
+.navbar__mobile-close {
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  order: -1;
+}
+
+.navbar__mobile-close:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.navbar__mobile-nav {
+  flex: 1;
+  padding: 24px 0;
+  display: flex;
+  flex-direction: column;
+  width: 80%;
+  background: linear-gradient(135deg, #171717 0%, #2a2a2a 100%);
+}
+
+.navbar__mobile-link {
+  display: block;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  padding: 16px 24px;
   font-weight: bold;
-  font-size: 18px;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+}
+
+.navbar__mobile-link:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.navbar__mobile-link--active {
+  color: #ffffff;
+  background-color: rgba(252, 175, 64, 0.1);
+  border-left-color: #fcaf40;
+}
+
+/* Responsive breakpoints */
+@media (max-width: 768px) {
+  .navbar__nav--desktop {
+    display: none;
+  }
+  .navbar__mobile-toggle {
+    display: block;
+  }
+  .navbar__container {
+    padding: 12px 16px;
+  }
+  .navbar__logo img {
+    height: 28px;
+  }
+}
+@media (max-width: 480px) {
+  .navbar__mobile-menu {
+    width: 100%;
+  }
+  .navbar__container {
+    padding: 12px 12px;
+  }
+}
+.submit-prediction-container {
+  text-align: center;
+  margin: 2rem 2.5rem;
+  padding: 20px;
+  background-color: rgb(49, 49, 49);
+  background-image: radial-gradient(99.7% 118.58% at 47.86% -54.11%, rgba(252, 175, 64, 0.74) 42.73%, rgba(26, 0, 14, 0.54) 77.16%, rgb(0, 0, 0) 100%);
+  background-blend-mode: multiply;
+  color: #fff;
+  border: 1px solid #fff;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+.submit-prediction-container .prediction-status {
+  margin-bottom: 1.5rem;
+}
+.submit-prediction-container .prediction-status h3 {
+  margin: 0 0 1rem 0;
+}
+.submit-prediction-container .prediction-status .status-indicator {
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+.submit-prediction-container .prediction-status .status-indicator span {
+  margin-left: 0.5rem;
 }
 .submit-prediction-container .prediction-status .status-indicator.complete {
-  color: #28a745;
+  color: #00B800;
 }
 .submit-prediction-container .prediction-status .status-indicator.partial {
-  color: #ffc107;
+  color: #856404;
 }
 .submit-prediction-container .prediction-status .status-indicator.incomplete {
-  color: #dc3545;
+  color: red;
 }
 .submit-prediction-container .prediction-status .user-id-warning {
   margin-top: 5px;
@@ -865,83 +1075,89 @@ table {
 .submit-prediction-container .champion-display {
   background-color: #111;
   padding: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 1.5rem;
   border-left: 4px solid #6F5D25;
 }
 .submit-prediction-container .champion-display h3 {
-  font-family: "Russo One", sans-serif;
-  color: #6F5D25;
+  color: #28a745;
+  font-size: 1.5rem;
   margin: 0;
 }
 .submit-prediction-container .progress-indicators {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 2rem;
+  margin: 1.5rem 0;
   flex-wrap: wrap;
-  margin-bottom: 20px;
 }
 .submit-prediction-container .progress-indicators .progress-item {
-  flex: 1;
-  min-width: 180px;
-  margin: 10px;
-  padding: 12px;
-  background: #1a1a1a;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
   border-radius: 6px;
-  text-align: center;
-  font-size: 14px;
-  border: 1px solid #444;
+  font-weight: 500;
+  min-width: 200px;
+  border-radius: 0.5rem;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #fff;
 }
 .submit-prediction-container .progress-indicators .progress-item.complete {
-  border-color: #28a745;
-  color: #28a745;
+  color: #00B800;
 }
 .submit-prediction-container .progress-indicators .progress-item.incomplete {
-  border-color: #dc3545;
-  color: #dc3545;
+  color: red;
 }
 .submit-prediction-container .progress-indicators .progress-item .progress-icon {
-  font-size: 20px;
+  font-size: 1.2rem;
   display: block;
-  margin-bottom: 5px;
 }
 .submit-prediction-container .submit-prediction-btn {
-  background-color: #6F5D25;
-  color: #fff;
-  font-weight: bold;
+  background: #6F5D25;
+  color: white;
+  border-radius: 0.5rem;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #6F5D25;
   padding: 12px 24px;
-  font-size: 16px;
-  border: none;
+  font-size: 1.1rem;
+  font-weight: bold;
   border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.3s;
-  width: 100%;
-  max-width: 400px;
-  display: block;
-  margin: 20px auto;
+  transition: all 0.3s ease;
+  min-width: 250px;
+  position: relative;
 }
 .submit-prediction-container .submit-prediction-btn:hover:not(:disabled) {
   background-color: rgb(72.75, 60.9527027027, 24.25);
+  transform: translateY(-2px);
+}
+.submit-prediction-container .submit-prediction-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+.submit-prediction-container .submit-prediction-btn.disabled {
+  background: #6F5D25;
+  cursor: not-allowed;
 }
 .submit-prediction-container .submit-prediction-btn.loading {
-  opacity: 0.8;
+  background: #6F5D25;
   pointer-events: none;
 }
 .submit-prediction-container .submit-prediction-btn.submitted {
   background-color: #28a745;
 }
-.submit-prediction-container .submit-prediction-btn.disabled {
-  background-color: #666;
-  cursor: not-allowed;
-}
 .submit-prediction-container .submit-prediction-btn .spinner {
   display: inline-block;
   width: 16px;
   height: 16px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-top-color: #fff;
+  border: 2px solid #ffffff;
+  border-top: 2px solid transparent;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-right: 8px;
-  vertical-align: middle;
 }
 @keyframes spin {
   to {
@@ -950,9 +1166,9 @@ table {
 }
 .submit-prediction-container .error-message {
   color: #dc3545;
-  margin-top: 15px;
-  font-size: 14px;
-  text-align: center;
+  padding: 10px;
+  border-radius: 4px;
+  margin-top: 1rem;
 }
 .submit-prediction-container .success-box {
   background: #d4edda;
@@ -976,11 +1192,38 @@ table {
   background-color: rgb(30.1449275362, 125.8550724638, 52);
 }
 
+@media (max-width: 768px) {
+  .progress-indicators {
+    flex-direction: column;
+    align-items: center;
+  }
+  .progress-item {
+    min-width: auto;
+    width: 100%;
+    max-width: 300px;
+  }
+}
 body {
   font-family: "Oxygen", arial, sans-serif;
   font-size: 16px;
   color: #fff;
-  background: #333;
+  background-color: rgb(112, 110, 110);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position-x: center;
+  background-image: url("../../public/FIFA Club World Cup_1920x1080.jpg");
+  background-attachment: fixed;
+  background-blend-mode: multiply;
+}
+
+.custom-bg-2 {
+  background-color: rgb(112, 110, 110);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position-x: center;
+  background-image: url("../../public/FIFA Club World Cup_1920x1080.jpg");
+  background-attachment: fixed;
+  background-blend-mode: multiply;
 }
 
 .container {

@@ -8,7 +8,7 @@
         width: 13%;
         left: -13%;
         top: 50%;
-        border-top: 3px solid $bracket-color;
+        border-top: 1px solid #fff;
         @media(max-width: 1000px) {
             display: none;
         }
@@ -19,8 +19,8 @@
         display: block;
         width: 10px;
         right: -10px;
-        border-color: $bracket-color;
-        border-width: 3px;    
+        border-color: #fff;
+        border-width: 1px;
         @media(max-width: 1000px) {
             display: none;
         }
