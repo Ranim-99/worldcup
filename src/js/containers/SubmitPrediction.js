@@ -28,7 +28,6 @@ class SubmitPrediction extends Component {
 
   // Check if all knockout matches have scores (non-null values)
   areKnockoutsComplete() {
-    console.log('this.props.knockouts', this.props.knockouts)
     return this.props.knockouts.every(round =>
       round.matches.every(match => 
         match.score1 !== null && match.score2 !== null &&
