@@ -168,7 +168,7 @@ async handleSubmit() {
     alert('Prediction submitted successfully! You will be redirected.');
 
     // setTimeout(() => {
-      window.location.href = 'https://gaming.arabhardware.net';
+      window.location.href = `https://gaming.arabhardware.net?ui=${userId}`;
     // }, 3000000000);
 
   } catch (error) {
