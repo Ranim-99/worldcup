@@ -157,7 +157,6 @@ async handleSubmit() {
       result = JSON.parse(responseText);
       console.log('Prediction submitted successfully', result);
     } catch (parseError) {
-      // If it's not JSON, just use the raw text response
       result = responseText;
       console.log('Prediction submitted successfully:', result);
     }
