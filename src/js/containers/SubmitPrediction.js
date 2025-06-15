@@ -114,67 +114,74 @@ class SubmitPrediction extends Component {
 
     return predictionData;
   }
-
-  async handleSubmit() {
-    const completionStatus = this.getCompletionStatus();
-    
-    if (completionStatus.status !== 'complete') {
-      alert(`Please complete all predictions! ${completionStatus.message}`);
-      return;
-    }
-
-    // Check if user ID exists in URL
-    const userId = this.getUserIdFromUrl();
-    if (!userId) {
-      alert('User ID is missing from the URL. Please make sure you accessed this page with a valid user ID parameter (?ui=yourId)');
-      return;
-    }
-
-    this.setState({ isSubmitting: true, error: null });
-
-    try {
-      const predictionData = this.collectPredictionData();
-      
-      // Log to console as requested
-      console.log('Submitting prediction data:', predictionData);
-
-      const response = await fetch('https://gaming.arabhardware.net/api/v1/predict-result', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(predictionData),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log('Prediction submitted successfully:', result);
-      
-      this.setState({ 
-        isSubmitting: false, 
-        isSubmitted: true 
-      });
-
-      // Show success message
-      alert('Prediction submitted successfully! You will be redirected in 30 seconds.');
-
-      // Redirect after 30 seconds
-      setTimeout(() => {
-        window.location.href = 'https://gaming.arabhardware.net';
-      }, 3000000000);
-
-    } catch (error) {
-      console.error('Error submitting prediction:', error);
-      this.setState({ 
-        isSubmitting: false, 
-        error: error.message 
-      });
-      alert(`Error submitting prediction: ${error.message}`);
-    }
+async handleSubmit() {
+  const completionStatus = this.getCompletionStatus();
+  
+  if (completionStatus.status !== 'complete') {
+    alert(`Please complete all predictions! ${completionStatus.message}`);
+    return;
   }
+
+  // Check if user ID exists in URL
+  const userId = this.getUserIdFromUrl();
+  if (!userId) {
+    alert('User ID is missing from the URL. Please make sure you accessed this page with a valid user ID parameter (?ui=yourId)');
+    return;
+  }
+
+  this.setState({ isSubmitting: true, error: null });
+
+  try {
+    const predictionData = this.collectPredictionData();
+    
+    // Log to console as requested
+    console.log('Submitting prediction data:', predictionData);
+
+    const response = await fetch('https://gaming.arabhardware.net/api/v1/predict-result', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(predictionData),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    // Try to parse as JSON, but handle non-JSON responses gracefully
+    let result;
+    const responseText = await response.text();
+    
+    try {
+      result = JSON.parse(responseText);
+      console.log('Prediction submitted successfully', result);
+    } catch (parseError) {
+      // If it's not JSON, just use the raw text response
+      result = responseText;
+      console.log('Prediction submitted successfully:', result);
+    }
+    
+    this.setState({ 
+      isSubmitting: false, 
+      isSubmitted: true 
+    });
+
+    alert('Prediction submitted successfully! You will be redirected.');
+
+    // setTimeout(() => {
+      window.location.href = 'https://gaming.arabhardware.net';
+    // }, 3000000000);
+
+  } catch (error) {
+    console.error('Error submitting prediction:', error);
+    this.setState({ 
+      isSubmitting: false, 
+      error: error.message 
+    });
+    alert(`Error submitting prediction: ${error.message}`);
+  }
+}
 
   render() {
     const { isSubmitting, isSubmitted, error } = this.state;
