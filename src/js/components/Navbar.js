@@ -45,7 +45,7 @@ export default function Navbar() {
         <div className="navbar__container">
           {/* logo */}
           <div className="navbar__logo">
-            <a href="/">
+            <a href="https://gaming.arabhardware.net">
               <img src="/ahw.png" alt="Arabhardware Logo" />
               <span>Arabhardware</span>
             </a>
