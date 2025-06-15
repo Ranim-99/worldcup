@@ -110,13 +110,9 @@ export default function Navbar() {
             {navItems.map(({ title, href }) => {
               const isActive = currentPath === href
               return (
-                <a
-                  key={href}
-                  href={href}
-                  className={
-                    'navbar__mobile-link' +
-                    (isActive ? ' navbar__mobile-link--active' : '')
-                  }
+                <a key={href} href={href}
+                  className={'navbar__mobile-link' +
+                    (isActive ? ' navbar__mobile-link--active' : '')}
                   onClick={closeMobileMenu}
                 >
                   {title}
