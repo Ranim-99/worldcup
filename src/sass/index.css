@@ -858,11 +858,11 @@ table {
 .navbar__link--active::after {
   content: "";
   position: absolute;
-  bottom: 0;
+  bottom: -17px;
   left: 0;
   height: 2px;
   width: 100%;
-  background-color: #fcaf40;
+  background-color: #fff;
 }
 
 /* Mobile toggle button - moved to left */
@@ -1171,8 +1171,8 @@ table {
   margin-top: 1rem;
 }
 .submit-prediction-container .success-box {
-  background: #d4edda;
-  border: 1px solid #c3e6cb;
+  background: #171717;
+  border: 1px solid white;
   padding: 15px;
   margin: 15px 0;
   border-radius: 4px;

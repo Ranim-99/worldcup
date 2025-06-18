@@ -70,11 +70,11 @@
 .navbar__link--active::after {
   content: '';
   position: absolute;
-  bottom: 0;
+  bottom: -17px;
   left: 0;
   height: 2px;
   width: 100%;
-  background-color: #fcaf40;
+  background-color: #fff;
 }
 
 /* Mobile toggle button - moved to left */
