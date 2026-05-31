@@ -5,6 +5,8 @@ import PropTypes from 'prop-types';
 import KnockoutGameComponent from '../components/KnockoutGameComponent';
 import { updateKnockout, removeTeam, updateChampions, removeChampions, updateKnockoutScore } from '../actions/index';
 
+import { advance, FINAL_MATCH_NUM } from '../data/matchData';
+
 const mapStateToProps = state => ({
   knockouts: state.knockouts,
   champions: state.champions,
@@ -149,7 +151,8 @@ class KnockoutMatch extends Component {
     const teams = [{ name: team.name, code: team.code }];
     const scores = [{ score1: homeScore, score2: awayScore }];
 
-    if (this.props.data.num !== 64) {
+    if (this.props.data.num !== FINAL_MATCH_NUM) {
+
       let firstIndex;
       // Find which match winner will play next
       this.props.knockouts[this.props.round].matches.filter((el, i) => {

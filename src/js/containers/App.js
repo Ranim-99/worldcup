@@ -31,7 +31,7 @@ class App extends Component {
     this.state = {
       knockout: false,
       showInfo: true,
-      year: "2025 Predictor",
+      year: "2026",
     };
     this.toggleRound = this.toggleRound.bind(this);
     this.handleYearChange = this.handleYearChange.bind(this);
@@ -42,7 +42,7 @@ class App extends Component {
   }
 
   componentDidMount() {
-    this.props.fetchPredictor(API2018);
+    this.props.fetchPredictor(API2026);
   }
 
   keyDownToggle(e) {
@@ -99,25 +99,15 @@ class App extends Component {
         <GroupGames data={data} key={data.num} group={i} index={j} />
       ));
       // Find which match the groups winners and runners up will play in the 'Last 16'
-      let first;
-      let second;
-      advance[0].matches.filter((a) => {
-        if (a.group === i) {
-          [first, second] = a.num;
-        }
-        return null;
-      });
+      let routing;
+      advance[0].matches.forEach((a) => { if (a.group === i) routing = a; });
       return (
-        <div
-          key={el.name}
-          id={"group-" + el.name[el.name.length - 1].toLowerCase()}
-          className="group"
-        >
+        <div key={el.name} id={"group-" + el.name[el.name.length - 1].toLowerCase()} className="group">
           <GroupTable
             key={el.name}
             name={el.name}
-            first={first}
-            second={second}
+            winner={routing.winner}
+            runnerUp={routing.runnerUp}
             data={el}
             index={i}
           />
@@ -195,7 +185,7 @@ class App extends Component {
           keyDownCloseInfo={this.keyDownCloseInfo}
         />
         <div className="container">{displayStage}
-        <SubmitPrediction />
+          <SubmitPrediction />
         </div>
       </div>
     );

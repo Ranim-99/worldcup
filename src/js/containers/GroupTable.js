@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
 
-import { updateQualifier, removeTeam, removeChampions } from "../actions/index";
+import { updateQualifier, removeTeam, removeChampions, reportThird } from '../actions/index';
 import GroupTableComponent from "../components/GroupTableComponent";
 
 const mapStateToProps = (state) => ({
@@ -16,6 +16,7 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(updateQualifier(teams, index1, index2, round)),
   removeTeam: (round, match, home) => dispatch(removeTeam(round, match, home)),
   removeChampions: (team) => dispatch(removeChampions(team)),
+  reportThird: (group, team) => dispatch(reportThird(group, team)),
 });
 
 class GroupTable extends Component {
@@ -37,6 +38,15 @@ class GroupTable extends Component {
       this.initializeTable();
     }
   }
+
+  reportThirdPlace() {
+  const groupLetter = this.props.name.slice(-1).toUpperCase(); // "Group A" -> "A"
+  const t = this.state.teams[2]; // third row after sorting
+  this.props.reportThird(
+    groupLetter,
+    t ? { name: t.name, code: t.code, pts: t.pts, gd: t.gd, gf: t.gf } : null,
+  );
+}
 
   initializeTable() {
     const teams = [];
@@ -118,10 +128,11 @@ class GroupTable extends Component {
     sortedTeams.sort((a, b) => (a.pts < b.pts ? 1 : -1));
 
     this.setState(
-      {
-        teams: sortedTeams,
+      { teams: sortedTeams },
+      () => {
+        this.calculateQualifiers();
+        this.reportThirdPlace();
       },
-      () => this.calculateQualifiers()
     );
   }
 
@@ -170,22 +181,21 @@ class GroupTable extends Component {
 
   calculateQualifiers(prevTable) {
     const { teams } = this.state;
-    let firstIndex;
-    let secondIndex;
-
-    // Get the match that the qualifiers will play next
-    this.props.knockouts[0].matches.filter((el, i) => {
-      if (this.props.first === el.num) firstIndex = i;
-      if (this.props.second === el.num) secondIndex = i;
-      return null;
+    const { winner, runnerUp } = this.props;
+    let winnerIndex; let runnerUpIndex;
+    this.props.knockouts[0].matches.forEach((el, i) => {
+      if (winner.num === el.num) winnerIndex = i;
+      if (runnerUp.num === el.num) runnerUpIndex = i;
     });
-
-    const qualified = [
-      { name: teams[0].name, code: teams[0].code },
-      { name: teams[1].name, code: teams[1].code },
-    ];
-
-    this.props.updateQualifier(qualified, firstIndex, secondIndex, 0);
+    this.props.updateQualifier(
+      {
+        winner: { name: teams[0].name, code: teams[0].code },
+        runnerUp: { name: teams[1].name, code: teams[1].code },
+      },
+      winnerIndex, winner.slot,
+      runnerUpIndex, runnerUp.slot,
+      0,
+    );
     this.checkFutureGames(prevTable);
   }
 
@@ -200,14 +210,15 @@ class GroupTable extends Component {
 
 GroupTable.propTypes = {
   knockouts: PropTypes.array.isRequired,
-  first: PropTypes.number.isRequired,
-  second: PropTypes.number.isRequired,
+  winner: PropTypes.object.isRequired,
+  runnerUp: PropTypes.object.isRequired,
   name: PropTypes.string.isRequired,
   updateQualifier: PropTypes.func.isRequired,
   data: PropTypes.object.isRequired,
   removeTeam: PropTypes.func.isRequired,
   champions: PropTypes.object.isRequired,
   removeChampions: PropTypes.func.isRequired,
+  reportThird: PropTypes.func.isRequired,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(GroupTable);

@@ -11,7 +11,13 @@ const mapStateToProps = state => ({
 // Display which knockout round in the heading
 const roundConverter = (length) => {
   let name;
-  const rounds = [{ name: 'Last 16', length: 8 }, { name: 'Quarter Finals', length: 4 }, { name: 'Semi Finals', length: 2 }, { name: 'Final', length: 1 }];
+  const rounds = [
+  { name: 'Round of 32', length: 16 },
+  { name: 'Last 16', length: 8 },
+  { name: 'Quarter Finals', length: 4 },
+  { name: 'Semi Finals', length: 2 },
+  { name: 'Final', length: 1 },
+];
   rounds.forEach((round) => {
     if (round.length === length) name = round.name;
   });
@@ -21,7 +27,7 @@ const roundConverter = (length) => {
 const Knockout = (props) => {
   // Display champions component if the current round is the final and a winner has been predicted
   const displayChampions = (
-    props.champions.name !== null && props.round === 3 ?
+    props.champions.name !== null && props.round === 4 ?
       <Champions team={props.champions} /> : ''
   );
   return (
