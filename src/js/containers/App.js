@@ -102,11 +102,7 @@ class App extends Component {
       let routing;
       advance[0].matches.forEach((a) => { if (a.group === i) routing = a; });
       return (
-        <div
-          key={el.name}
-          id={"group-" + el.name[el.name.length - 1].toLowerCase()}
-          className="group"
-        >
+        <div key={el.name} id={"group-" + el.name[el.name.length - 1].toLowerCase()} className="group">
           <GroupTable
             key={el.name}
             name={el.name}
