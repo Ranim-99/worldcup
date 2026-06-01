@@ -24,7 +24,7 @@ export const GroupGameComponent = (props) => {
       </div>
       <div>
         <div className="group-stadium">{ stadium }</div>
-        <div className="group-location">{props.data.city}</div>
+        {/* <div className="group-location">{props.data.city}</div> */}
         <hr className="group-line" />
       </div>
     </div>

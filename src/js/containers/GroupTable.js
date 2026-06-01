@@ -108,15 +108,6 @@ class GroupTable extends Component {
     }
   }
 
-  reportThirdPlace() {
-  const groupLetter = this.props.name.slice(-1).toUpperCase(); // "Group A" -> "A"
-  const t = this.state.teams[2]; // third row after sorting
-  this.props.reportThird(
-    groupLetter,
-    t ? { name: t.name, code: t.code, pts: t.pts, gd: t.gd, gf: t.gf } : null,
-  );
-}
-
   initializeTable() {
     const teams = [];
     const group = this.props.data;
