@@ -110,30 +110,29 @@ class KnockoutGameComponent extends Component {
     const homeHover = this.props.data.goals1 ? <HoverInfo data={homeScorers} /> : '';
     const awayHover = this.props.data.goals2 ? <HoverInfo data={awayScorers} /> : '';
 
-    const homeTeam = this.props.data.team1.name !== null ?
-      this.props.data.team1.name : this.props.data.team1.position;
+    const t1 = this.props.data.team1 || { name: null, code: null, position: '' };
+    const t2 = this.props.data.team2 || { name: null, code: null, position: '' };
 
-    const awayTeam = this.props.data.team2.name !== null ?
-      this.props.data.team2.name : this.props.data.team2.position;
+    const homeTeam = t1.name !== null ? t1.name : t1.position;
+    const awayTeam = t2.name !== null ? t2.name : t2.position;
 
-    const homeFlag = this.props.data.team1.name === null ? '' :
-    <FlagIcon code={codeConverter(this.props.data.team1.code)} size="2x" />;
-
-    const awayFlag = this.props.data.team2.name === null ? '' :
-    <FlagIcon code={codeConverter(this.props.data.team2.code)} size="2x" />;
+    const homeFlag = t1.name === null ? '' :
+      <FlagIcon code={codeConverter(t1.code)} size="2x" />;
+    const awayFlag = t2.name === null ? '' :
+      <FlagIcon code={codeConverter(t2.code)} size="2x" />;
 
     const stadium = this.props.data.stadium ? this.props.data.stadium.name : '';
 
     // Check if this is an actual played match (has goals data or is marked as played)
     // vs a prediction match (user can still edit)
     const isActualResult = this.props.data.goals1 || this.props.data.goals2 || this.props.data.isPlayed;
-    
+
     // Show prediction inputs if:
     // 1. Both teams exist
     // 2. It's NOT an actual played match (just a prediction)
-    const showPredictionInputs = this.props.data.team1.name !== null && 
-                                this.props.data.team2.name !== null && 
-                                !isActualResult;
+    const showPredictionInputs = this.props.data.team1.name !== null &&
+      this.props.data.team2.name !== null &&
+      !isActualResult;
 
     const homeScore = showPredictionInputs ?
       this.renderHomePrediction() :
@@ -149,39 +148,39 @@ class KnockoutGameComponent extends Component {
         <div className="knockout-teams">
           <div className="knockout-team">
             <div>
-              { homeFlag }
+              {homeFlag}
               <div className="knockout-country-name">
                 <div>
-                  { homeTeam }
+                  {homeTeam}
                 </div>
-                { homeHover }
+                {homeHover}
               </div>
               <div className="knockout-score">
-                { homeScore }
+                {homeScore}
               </div>
             </div>
             <div className="knockout-scorers">
-              { homeScorers }
+              {homeScorers}
             </div>
           </div>
 
           <div className="knockout-team">
             <div>
-              { awayFlag }
+              {awayFlag}
               <div className="knockout-country-name">
-                { awayTeam }
+                {awayTeam}
               </div>
-              { awayHover }
+              {awayHover}
               <div className="knockout-score">
-                { awayScore }
+                {awayScore}
               </div>
             </div>
             <div className="knockout-scorers">
-              { awayScorers }
+              {awayScorers}
             </div>
           </div>
         </div>
-        <div className="knockout-stadium">{ stadium }</div>
+        <div className="knockout-stadium">{stadium}</div>
         <div className="knockout-location">{this.props.data.city}</div>
       </div>
     );

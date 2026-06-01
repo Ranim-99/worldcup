@@ -5,27 +5,21 @@ function knockouts(state = [], action) {
   switch (action.type) {
     case KNOCKOUT_DATA_FETCHED:
       return action.data;
-    
+
     case UPDATE_QUALIFIER:
-      return update(state, {
-        [action.round]: {
-          matches: {
-            [action.index1]: {
-              team1: {
-                name: { $set: action.teams[0].name },
-                code: { $set: action.teams[0].code },
-              },
-            },
-            [action.index2]: {
-              team2: {
-                name: { $set: action.teams[1].name },
-                code: { $set: action.teams[1].code },
-              },
-            },
-          },
-        },
-      });
-    
+  return update(state, {
+    [action.round]: {
+      matches: action.payload.reduce((acc, { index, slot, team }) => {
+        if (index != null && index !== -1) {
+          acc[index] = {
+            [slot]: { name: { $set: team.name }, code: { $set: team.code } },
+          };
+        }
+        return acc;
+      }, {}),
+    },
+  });
+
     case UPDATE_KNOCKOUT:
       // Handle score-only updates
       if (action.home === 'scores' && action.scores) {
@@ -40,7 +34,7 @@ function knockouts(state = [], action) {
           },
         });
       }
-      
+
       // Handle team updates with scores
       let updateObj = {
         [action.round]: {
@@ -54,15 +48,15 @@ function knockouts(state = [], action) {
           },
         },
       };
-      
+
       // Add scores if provided
       if (action.scores && action.scores.length > 0) {
         updateObj[action.round].matches[action.index1].score1 = { $set: action.scores[0].score1 };
         updateObj[action.round].matches[action.index1].score2 = { $set: action.scores[0].score2 };
       }
-      
+
       return update(state, updateObj);
-    
+
     case UPDATE_KNOCKOUT_SCORE:
       return state.map((round, roundIndex) => {
         if (roundIndex === action.round) {
@@ -82,7 +76,7 @@ function knockouts(state = [], action) {
         }
         return round;
       });
-    
+
     case REMOVE_TEAM:
       return update(state, {
         [action.round]: {
@@ -99,7 +93,7 @@ function knockouts(state = [], action) {
           },
         },
       });
-    
+
     default:
       return state;
   }

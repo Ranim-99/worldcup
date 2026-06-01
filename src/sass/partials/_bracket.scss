@@ -70,8 +70,50 @@
 }
 
 .bracket-4 {
-    justify-content: center;
+    justify-content: space-around;
     .bracket-team:after {
         display: none;
     }
+}
+
+
+.bracket-5 {              /* Final */
+  justify-content: center;
+}
+.bracket-5 .bracket-team::after {
+  display: none;
+}
+
+/* Third-place box: sits under the Final, no connector lines */
+.third-place-match::before,
+.third-place-match::after {
+  display: none !important;
+}
+.third-place-match {
+  margin-top: 28px;
+}
+.third-place-label {
+  font-family: "Russo One", sans-serif;
+  font-size: 14px;
+  padding: 6px 0;
+  text-align: center;
+}
+
+/* Semi-finals -> Final connector lines.
+   This column was the Final before (no outgoing line); now it's the SF
+   and needs the connectors, same geometry the SF had in the 4-column bracket. */
+.bracket-4 .bracket-team::after {
+  display: block;
+}
+.bracket-4 .bracket-team:nth-of-type(odd)::after {
+  height: 350%;
+  top: 50%;
+  border-right-style: solid;
+  border-top-style: solid;
+}
+.bracket-4 .bracket-team:nth-of-type(even)::after {
+  height: 350%;
+  top: -300%;
+  border-right-style: solid;
+  border-bottom-style: solid;
 }
