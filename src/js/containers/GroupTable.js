@@ -2,8 +2,9 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
 
-import { updateQualifier, removeTeam, removeChampions } from "../actions/index";
-import GroupTableComponent from "../components/GroupTableComponent";
+import { updateQualifier, removeTeam, removeChampions, reportThird } from "../actions/index";
+import FlagIcon from "../components/FlagIcon";
+import codeConverter from "../data/flagCodes";
 
 const mapStateToProps = (state) => ({
   groups: state.groups,
@@ -21,178 +22,213 @@ const mapDispatchToProps = (dispatch) => ({
 class GroupTable extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-      teams: [],
-    };
-
-    this.calculateTable = this.calculateTable.bind(this);
+    // order: array of team names in chosen finishing order (index 0 = 1st)
+    this.state = { teams: [], order: [] };
+    this.placeTeam = this.placeTeam.bind(this);
+    this.removeFromOrder = this.removeFromOrder.bind(this);
+    this.moveUp = this.moveUp.bind(this);
+    this.moveDown = this.moveDown.bind(this);
+    this.autoOrder = this.autoOrder.bind(this);
+    this.reset = this.reset.bind(this);
   }
 
   componentDidMount() {
-    this.initializeTable();
+    this.initializeTeams();
   }
 
   componentDidUpdate(prevProps) {
     if (this.props.data !== prevProps.data) {
-      this.initializeTable();
+      this.initializeTeams();
     }
   }
 
-  initializeTable() {
+  initializeTeams() {
     const teams = [];
-    const group = this.props.data;
-    // Mapping each team with table data then filtering out any duplicate 2 teams
-    group.matches
-      .map((el) => [el.team1.name, el.team1.code])
-      .map((el) => ({
-        name: el[0],
-        code: el[1],
-        won: 0,
-        drawn: 0,
-        lost: 0,
-        gf: 0,
-        ga: 0,
-        gd: 0,
-        pts: 0,
-      }))
-      .filter((el) => {
-        const i = teams.findIndex((x) => x.name === el.name);
-        if (i <= -1) teams.push(el);
-        return null;
-      });
-
-    this.setState(
-      {
-        teams,
-      },
-      () => this.calculateTable()
-    );
-  }
-
-  calculateTable() {
-    const group = this.props.data;
-    const teams = [...this.state.teams];
-
-    // Filter through matches extract results and update table stats
-    group.matches.forEach((match) => {
-      let homeTeam;
-      let awayTeam;
-      teams.forEach((team) => {
-        if (team.name === match.team1.name) homeTeam = team;
-        if (team.name === match.team2.name) awayTeam = team;
-      });
-      const result = match.score1 - match.score2;
-      homeTeam.gf = match.score1;
-      homeTeam.ga = match.score2;
-      awayTeam.gf = match.score2;
-      awayTeam.ga = match.score1;
-
-      // Logic for updating table stats
-      if (match.score1 === null) {
-        return null;
-      } else if (result > 0) {
-        homeTeam.won += 1;
-        homeTeam.gd += result;
-        homeTeam.pts += 3;
-        awayTeam.lost += 1;
-        awayTeam.gd -= result;
-      } else if (result < 0) {
-        awayTeam.won += 1;
-        awayTeam.gd -= result;
-        awayTeam.pts += 3;
-        homeTeam.lost += 1;
-        homeTeam.gd += result;
-      } else if (result === 0) {
-        homeTeam.drawn += 1;
-        homeTeam.pts += 1;
-        awayTeam.drawn += 1;
-        awayTeam.pts += 1;
+    this.props.data.matches.forEach((el) => {
+      if (el.team1.name && teams.findIndex((x) => x.name === el.team1.name) === -1) {
+        teams.push({ name: el.team1.name, code: el.team1.code });
+      }
+      if (el.team2.name && teams.findIndex((x) => x.name === el.team2.name) === -1) {
+        teams.push({ name: el.team2.name, code: el.team2.code });
       }
       return null;
     });
+    this.setState({ teams });
+  }
 
-    /* Sort table by points and goal difference and goals scored.
-    Don't chain as causes bug in Microsoft Edge */
-    const sortedTeams = teams.sort((a, b) => (a.gf < b.gf ? 1 : -1));
-    sortedTeams.sort((a, b) => (a.gd < b.gd ? 1 : -1));
-    sortedTeams.sort((a, b) => (a.pts < b.pts ? 1 : -1));
+  placeTeam(name) {
+    this.setState((prev) => {
+      if (prev.order.includes(name) || prev.order.length >= 4) return null;
+      const order = [...prev.order, name];
+      // Once 3 are placed, auto-drop the only remaining team into 4th.
+      if (order.length === 3) {
+        const last = prev.teams.find((t) => !order.includes(t.name));
+        if (last) order.push(last.name);
+      }
+      return { order };
+    }, this.applySelections);
+  }
 
+  removeFromOrder(index) {
+    this.setState((prev) => {
+      const order = [...prev.order];
+      order.splice(index, 1);
+      return { order };
+    }, this.applySelections);
+  }
+
+  moveUp(index) {
+    if (index === 0) return;
+    this.setState((prev) => {
+      const order = [...prev.order];
+      [order[index - 1], order[index]] = [order[index], order[index - 1]];
+      return { order };
+    }, this.applySelections);
+  }
+
+  moveDown(index) {
+    this.setState((prev) => {
+      if (index >= prev.order.length - 1) return null;
+      const order = [...prev.order];
+      [order[index + 1], order[index]] = [order[index], order[index + 1]];
+      return { order };
+    }, this.applySelections);
+  }
+
+  autoOrder() {
     this.setState(
-      {
-        teams: sortedTeams,
-      },
-      () => this.calculateQualifiers()
+      (prev) => ({ order: prev.teams.map((t) => t.name) }),
+      this.applySelections,
     );
   }
 
+  reset() {
+    this.setState({ order: [] }, this.applySelections);
+  }
+
+  // Push current order into the bracket + thirds pool.
+  applySelections() {
+    const { order, teams } = this.state;
+    const { winner, runnerUp } = this.props;
+    const r32 = this.props.knockouts[0];
+    if (!r32) return;
+
+    const findIdx = (num) => r32.matches.findIndex((m) => m.num === num);
+    const teamObj = (name) => teams.find((t) => t.name === name) || null;
+
+    const first = teamObj(order[0]);
+    const second = teamObj(order[1]);
+    const third = teamObj(order[2]);
+
+    this.props.updateQualifier(
+      [
+        {
+          index: findIdx(winner.num), slot: winner.slot,
+          team: first ? { name: first.name, code: first.code } : { name: null, code: null },
+        },
+        {
+          index: findIdx(runnerUp.num), slot: runnerUp.slot,
+          team: second ? { name: second.name, code: second.code } : { name: null, code: null },
+        },
+      ],
+      0,
+    );
+
+    const groupLetter = this.props.name.slice(-1).toUpperCase();
+    this.props.reportThird(
+      groupLetter,
+      third ? { name: third.name, code: third.code } : null,
+    );
+
+    this.checkFutureGames();
+  }
+
+  // Strip teams no longer in the top two out of later knockout rounds.
   checkFutureGames() {
-    /* Remove all teams from knockouts after changing group to prevent bugs where
-    teams not qualified from the group are still in the knockouts */
-    const teams = [...this.state.teams];
-    // Slice to just get last 16 round
+    const { order, teams } = this.state;
+    const advancing = [order[0], order[1]].filter(Boolean);
+    const stillIn = teams.filter((t) => !advancing.includes(t.name)).map((t) => t.name);
+
     const knockouts = [...this.props.knockouts].slice(1);
-    const removeTeamArr = [];
-    teams.forEach((team) => {
+    const removeArr = [];
+    stillIn.forEach((name) => {
       knockouts.forEach((round, i) => {
         round.matches.forEach((match, j) => {
-          if (team.name === match.team1.name) {
-            removeTeamArr.push({
-              name: team.name,
-              round: i + 1,
-              match: j,
-              home: "team1",
-            });
-          }
-          if (team.name === match.team2.name) {
-            removeTeamArr.push({
-              name: team.name,
-              round: i + 1,
-              match: j,
-              home: "team2",
-            });
-          }
+          if (match.team1 && match.team1.name === name) removeArr.push({ name, round: i + 1, match: j, home: "team1" });
+          if (match.team2 && match.team2.name === name) removeArr.push({ name, round: i + 1, match: j, home: "team2" });
         });
       });
     });
-
-    // Removing teams from the knockout founds if result only predicted
-    if (removeTeamArr.length) {
-      removeTeamArr.forEach((el) => {
-        if (!this.props.knockouts[el.round].matches[el.match].confirmed) {
-          this.props.removeTeam(el.round, el.match, el.home);
-        }
-        if (el.name === this.props.champions.name) {
-          this.props.removeChampions(this.props.champions);
-        }
-      });
-    }
-  }
-
-  calculateQualifiers(prevTable) {
-    const { teams } = this.state;
-    let firstIndex;
-    let secondIndex;
-
-    // Get the match that the qualifiers will play next
-    this.props.knockouts[0].matches.filter((el, i) => {
-      if (this.props.first === el.num) firstIndex = i;
-      if (this.props.second === el.num) secondIndex = i;
-      return null;
+    removeArr.forEach((el) => {
+      if (!this.props.knockouts[el.round].matches[el.match].confirmed) {
+        this.props.removeTeam(el.round, el.match, el.home);
+      }
+      if (el.name === this.props.champions.name) {
+        this.props.removeChampions(this.props.champions);
+      }
     });
-
-    const qualified = [
-      { name: teams[0].name, code: teams[0].code },
-      { name: teams[1].name, code: teams[1].code },
-    ];
-
-    this.props.updateQualifier(qualified, firstIndex, secondIndex, 0);
-    this.checkFutureGames(prevTable);
   }
 
   render() {
+    const { teams, order } = this.state;
+    const posOf = (name) => order.indexOf(name);
+
     return (
-      <div>
-        <GroupTableComponent teams={this.state.teams} name={this.props.name} />
+      <div className="gp-card">
+        <div className="gp-header">
+          <span className="gp-title">{this.props.name.toUpperCase()}</span>
+        </div>
+
+        <div className="gp-tiles">
+          {teams.map((team) => {
+            const pos = posOf(team.name);
+            return (
+              <button
+                key={team.name}
+                type="button"
+                className={"gp-tile" + (pos !== -1 ? " gp-tile--placed" : "")}
+                onClick={() => (pos !== -1 ? this.removeFromOrder(pos) : this.placeTeam(team.name))}
+                title={team.name}
+              >
+                {pos !== -1 && <span className="gp-tile-badge">{pos + 1}</span>}
+                <FlagIcon code={codeConverter(team.code)} size="2x" />
+                <span className="gp-tile-name">{team.name}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="gp-slots">
+          {[0, 1, 2, 3].map((i) => {
+            const name = order[i];
+            const team = teams.find((t) => t.name === name);
+            return (
+              <div className="gp-slot" key={i}>
+                <span className="gp-slot-num">{i + 1}</span>
+                {team ? (
+                  <div className="gp-slot-team">
+                    <FlagIcon code={codeConverter(team.code)} size="2x" />
+                    <span className="gp-slot-name">{team.name}</span>
+                  </div>
+                ) : (
+                  <span className="gp-slot-empty">-</span>
+                )}
+                {team && (
+                  <span className="gp-slot-ctrls">
+                    <button type="button" onClick={() => this.moveUp(i)} disabled={i === 0}>▲</button>
+                    <button type="button" onClick={() => this.moveDown(i)} disabled={i >= order.length - 1}>▼</button>
+                    <button type="button" onClick={() => this.removeFromOrder(i)}>✕</button>
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="gp-actions">
+          <button type="button" className="gp-btn" onClick={this.reset} title="Reset">↺</button>
+          <button type="button" className="gp-btn gp-btn--auto" onClick={this.autoOrder} title="Auto order">✦</button>
+        </div>
       </div>
     );
   }

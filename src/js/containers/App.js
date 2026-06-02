@@ -12,6 +12,7 @@ import { fetchData, fetchPredictor } from "../actions/index";
 import { advance } from "../data/matchData";
 import { API2014, API2018 } from "../constants/api";
 import SubmitPrediction from "./SubmitPrediction";
+import ThirdPlacePicker from "./ThirdPlacePicker";
 
 const mapStateToProps = (state) => ({
   groups: state.groups,
@@ -95,9 +96,9 @@ class App extends Component {
 
     // Map groups games to component
     const groups = this.props.groups.map((el, i) => {
-      const games = el.matches.map((data, j) => (
+     /*  const games = el.matches.map((data, j) => (
         <GroupGames data={data} key={data.num} group={i} index={j} />
-      ));
+      )); */
       // Find which match the groups winners and runners up will play in the 'Last 16'
       let first;
       let second;
@@ -121,7 +122,7 @@ class App extends Component {
             data={el}
             index={i}
           />
-          {games}
+          {/* {games} */}
         </div>
       );
     });
@@ -133,6 +134,7 @@ class App extends Component {
           <div className="link-container">{links}</div>
         </div>
         <div className="group-stage">{groups}</div>
+        <ThirdPlacePicker />
       </div>
     );
   }
