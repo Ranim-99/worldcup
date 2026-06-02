@@ -91,6 +91,10 @@ class ResultModal extends Component {
 
           {/* This block is what gets captured as the image */}
           <div className="rm-card" ref={this.cardRef}>
+            <div className="rm-logo">
+              <img id='arabhardware-logo' src="https://arabhardware.net/theme-assets/images/logo.svg" alt="Arabhardware Logo" />
+              <span className="rm-logo-text">ArabHardware</span>
+            </div>
             <div className="rm-card-header">FIFA World Cup 2026</div>
             <div className="rm-card-sub">My Prediction</div>
 

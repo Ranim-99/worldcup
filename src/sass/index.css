@@ -1812,6 +1812,28 @@ body { padding-bottom: 76px; } /* so content isn't hidden behind the bar */
   background-color: rgb(30.1449275362, 125.8550724638, 52);
 }
 
+#champion-trophy{
+  height: 5em;
+}
+
+#arabhardware-logo{
+  height: 3em;
+}
+
+.rm-logo {
+      display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 0.8em;
+    justify-content: center;
+}
+
+.rm-logo-text {
+  font-family: "Russo One", sans-serif;
+  font-size: 18px;
+  color: #fff;
+}
+
 @media (max-width: 768px) {
   .progress-indicators {
     flex-direction: column;

@@ -10,7 +10,9 @@ const Champions = props => (
   <div className="champions-container">
     <div className="champions-data">
       <Confetti {...props.size} numberOfPieces={50} />
-      <div><i className="fas fa-trophy" /></div>
+      <div>{/* <i className="fas fa-trophy" /> */}
+      <img id='champion-trophy' src="fifa-trophy.svg" alt="Champion Trophy" /></div>
+      
       <div className="champions-flag">
         <FlagIcon code={codeConverter(props.team.code)} size="2x" />
       </div>
