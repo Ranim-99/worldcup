@@ -1,8 +1,11 @@
 import processInitialState from '../helpers/processInitialState';
 import processInitialPredictorState from '../helpers/processInitialPredictorState';
-import { KNOCKOUT_DATA_FETCHED, UPDATE_QUALIFIER, UPDATE_KNOCKOUT,
+import {
+  KNOCKOUT_DATA_FETCHED, UPDATE_QUALIFIER, UPDATE_KNOCKOUT,
   UPDATE_SCORE, DATA_FETCHED, LOADING_DATA, LOADING_ERROR, REMOVE_TEAM,
-  UPDATE_CHAMPIONS, REMOVE_CHAMPIONS, UPDATE_KNOCKOUT_SCORE } from '../constants/action-types';
+  UPDATE_CHAMPIONS, REMOVE_CHAMPIONS, UPDATE_KNOCKOUT_SCORE,
+  SET_WINNER,
+} from '../constants/action-types';
 
 import { assignThirds } from '../data/thirdPlaceAllocation';
 import { REPORT_THIRD } from '../constants/action-types';
@@ -62,6 +65,10 @@ function updateQual(payload, round) {
 }
 export function updateQualifier(payload, round) {
   return (dispatch) => dispatch(updateQual(payload, round));
+}
+
+export function setMatchWinner(round, index, winnerName) {
+  return { type: SET_WINNER, round, index, winnerName };
 }
 
 function removeMatch(round, match, home) {

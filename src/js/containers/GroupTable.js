@@ -4,12 +4,13 @@ import PropTypes from "prop-types";
 
 import { updateQualifier, removeTeam, removeChampions, reportThird } from "../actions/index";
 import FlagIcon from "../components/FlagIcon";
-import codeConverter from "../data/flagCodes";
+import codeConverter, { toTrigram } from "../data/flagCodes";
 
 const mapStateToProps = (state) => ({
   groups: state.groups,
   knockouts: state.knockouts,
   champions: state.champions,
+  thirds: state.thirds,
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -112,9 +113,37 @@ class GroupTable extends Component {
   componentDidUpdate(prevProps) {
     if (this.props.data !== prevProps.data) {
       this.initializeTeams();
+    } else if (prevProps.knockouts !== this.props.knockouts || prevProps.thirds !== this.props.thirds) {
+      this.hydrateFromStore(this.state.teams);
     }
   }
 
+  hydrateFromStore(teamsArg) {
+    const teams = teamsArg || this.state.teams;
+    const { winner, runnerUp, name } = this.props;
+    const r32 = this.props.knockouts[0];
+    if (!r32 || teams.length < 4) return;
+
+    const slotTeam = (route) => {
+      const m = r32.matches.find((x) => x.num === route.num);
+      return m && m[route.slot] && m[route.slot].name ? m[route.slot].name : null;
+    };
+
+    const first = slotTeam(winner);
+    const second = slotTeam(runnerUp);
+    const letter = name.slice(-1).toUpperCase();
+    const third = this.props.thirds[letter] ? this.props.thirds[letter].name : null;
+
+    const order = [first, second, third].filter(Boolean);
+    if (order.length === 3) {
+      const last = teams.find((t) => !order.includes(t.name));
+      if (last) order.push(last.name);   // auto-4th, computed from the passed-in teams
+    }
+
+    if (order.join('|') !== this.state.order.join('|')) {
+      this.setState({ order });
+    }
+  }
   initializeTeams() {
     const teams = [];
     this.props.data.matches.forEach((el) => {
@@ -125,7 +154,7 @@ class GroupTable extends Component {
         teams.push({ name: el.team2.name, code: el.team2.code });
       }
     });
-    this.setState({ teams });
+    this.setState({ teams }, () => this.hydrateFromStore(teams)); // hydrate AFTER teams exist
   }
 
   placeTeam(name) {
@@ -264,7 +293,7 @@ class GroupTable extends Component {
               >
                 {pos !== -1 && <span className="gp-tile-badge">{pos + 1}</span>}
                 <FlagIcon code={codeConverter(team.code)} size="2x" />
-                <span className="gp-tile-name">{team.name}</span>
+                <span className="gp-tile-name">{toTrigram(team.name)}</span>
               </button>
             );
           })}

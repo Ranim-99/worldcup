@@ -1,24 +1,31 @@
 import update from 'immutability-helper';
-import { KNOCKOUT_DATA_FETCHED, UPDATE_QUALIFIER, UPDATE_KNOCKOUT, UPDATE_KNOCKOUT_SCORE, REMOVE_TEAM } from '../constants/action-types';
+import { KNOCKOUT_DATA_FETCHED, UPDATE_QUALIFIER, UPDATE_KNOCKOUT, UPDATE_KNOCKOUT_SCORE, REMOVE_TEAM, SET_WINNER } from '../constants/action-types';
 
 function knockouts(state = [], action) {
   switch (action.type) {
     case KNOCKOUT_DATA_FETCHED:
       return action.data;
 
+    case SET_WINNER:
+      return state.map((round, ri) => (ri !== action.round ? round : {
+        ...round,
+        matches: round.matches.map((m, mi) =>
+          (mi !== action.index ? m : { ...m, winnerName: action.winnerName })),
+      }));
+
     case UPDATE_QUALIFIER:
-  return update(state, {
-    [action.round]: {
-      matches: action.payload.reduce((acc, { index, slot, team }) => {
-        if (index != null && index !== -1) {
-          acc[index] = {
-            [slot]: { name: { $set: team.name }, code: { $set: team.code } },
-          };
-        }
-        return acc;
-      }, {}),
-    },
-  });
+      return update(state, {
+        [action.round]: {
+          matches: action.payload.reduce((acc, { index, slot, team }) => {
+            if (index != null && index !== -1) {
+              acc[index] = {
+                [slot]: { name: { $set: team.name }, code: { $set: team.code } },
+              };
+            }
+            return acc;
+          }, {}),
+        },
+      });
 
     case UPDATE_KNOCKOUT:
       // Handle score-only updates

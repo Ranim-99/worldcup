@@ -24,7 +24,7 @@ const Header = (props) => {
       {/* <header>AHW</header> */}
      {/*  <a href="https://github.com/rzencoder/world-cup-predictor" className="github-link"><i className="fab fa-github" /></a> */}
      <Navbar />
-      <h1 className="title">FIFA Club World Cup {props.year}</h1>
+      <h1 className="title">FIFA World Cup {props.year}</h1>
       { showInfo }
       <div className="container">
         {/* <form className="year-selector" onSubmit={props.handleYearSubmit}>

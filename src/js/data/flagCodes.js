@@ -21,6 +21,24 @@ const NAME_TO_FIFA = {
   'DR Congo': 'COD', 'Congo DR': 'COD', Iraq: 'IRQ',
 };
 
+export const NAME_TO_TRIGRAM = {
+  Mexico: 'MEX', 'South Africa': 'RSA', 'South Korea': 'KOR', Canada: 'CAN',
+  Qatar: 'QAT', Switzerland: 'SUI', Brazil: 'BRA', Morocco: 'MAR', Haiti: 'HAI',
+  Scotland: 'SCO', USA: 'USA', 'United States': 'USA', Paraguay: 'PAR', Australia: 'AUS',
+  Germany: 'GER', 'Curaçao': 'CUW', 'Ivory Coast': 'CIV', Ecuador: 'ECU',
+  Netherlands: 'NED', Japan: 'JPN', Tunisia: 'TUN', Belgium: 'BEL', Egypt: 'EGY',
+  Iran: 'IRN', 'New Zealand': 'NZL', Spain: 'ESP', 'Cape Verde': 'CPV',
+  'Saudi Arabia': 'KSA', Uruguay: 'URU', France: 'FRA', Senegal: 'SEN', Norway: 'NOR',
+  Argentina: 'ARG', Algeria: 'ALG', Austria: 'AUT', Jordan: 'JOR', Portugal: 'POR',
+  Uzbekistan: 'UZB', Colombia: 'COL', England: 'ENG', Croatia: 'CRO', Ghana: 'GHA',
+  Panama: 'PAN', 'DR Congo': 'COD', 'Bosnia & Herzegovina': 'BIH', Iraq: 'IRQ',
+};
+
+export const toTrigram = (name) =>
+  NAME_TO_TRIGRAM[name]
+  || NAME_TO_TRIGRAM[(name || '').replace(' & ', ' and ')]
+  || (name ? name.slice(0, 3).toUpperCase() : '');
+
 const codeConverter = (name) => {
   if (!name) return { title: '', url: PLACEHOLDER };
   if (/winner|path|^\d|^[WL]\d/i.test(name)) return { title: name, url: PLACEHOLDER };

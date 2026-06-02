@@ -21,6 +21,34 @@ const mapDispatchToProps = (dispatch) => ({
 const THIRD_SLOT_MATCHES = [74, 77, 79, 80, 81, 82, 85, 87];
 
 class ThirdPlacePicker extends Component {
+
+  componentDidMount() {
+    this.hydrateFromStore();
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.knockouts !== this.props.knockouts) this.hydrateFromStore();
+  }
+
+  hydrateFromStore() {
+    const r32 = this.props.knockouts[0];
+    if (!r32) return;
+    // For each filled third-slot, find which group's 3rd is sitting there.
+    const filledNames = THIRD_SLOT_MATCHES
+      .map((num) => {
+        const m = r32.matches.find((x) => x.num === num);
+        return m && m.team2 && m.team2.name ? m.team2.name : null;
+      })
+      .filter(Boolean);
+
+    const selected = Object.keys(this.props.thirds).filter((letter) =>
+      filledNames.includes(this.props.thirds[letter].name));
+
+    if (selected.sort().join('') !== [...this.state.selected].sort().join('')) {
+      this.setState({ selected });
+    }
+  }
+
   constructor(props) {
     super(props);
     this.state = { selected: [] }; // array of group letters, max 8
@@ -104,7 +132,8 @@ class ThirdPlacePicker extends Component {
         <div className="tp-grid">
           {groups.map((letter) => {
             const team = thirds[letter];
-            const on = selected.includes(letter);
+            const pickIndex = selected.indexOf(letter);
+            const on = pickIndex !== -1;
             const disabled = !on && selected.length >= 8;
             return (
               <button
@@ -114,6 +143,7 @@ class ThirdPlacePicker extends Component {
                 onClick={() => this.toggle(letter)}
                 disabled={disabled}
               >
+                <span className="tp-rank">{on ? pickIndex + 1 : ""}</span>
                 <span className="tp-group">3{letter}</span>
                 <FlagIcon code={codeConverter(team.code)} size="2x" />
                 <span className="tp-name">{team.name}</span>

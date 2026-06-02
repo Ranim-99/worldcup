@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
 import KnockoutGameComponent from '../components/KnockoutGameComponent';
-import { updateKnockout, removeTeam, updateChampions, removeChampions } from '../actions/index';
+import { updateKnockout, removeTeam, updateChampions, removeChampions, setMatchWinner } from '../actions/index';
 import { FINAL_MATCH_NUM, THIRD_PLACE_MATCH_NUM } from '../data/matchData';
 
 const mapStateToProps = (state) => ({
@@ -17,26 +17,37 @@ const mapDispatchToProps = (dispatch) => ({
   removeTeam: (round, match, home) => dispatch(removeTeam(round, match, home)),
   updateChampions: (team) => dispatch(updateChampions(team)),
   removeChampions: (team) => dispatch(removeChampions(team)),
+  setMatchWinner: (round, index, name) => dispatch(setMatchWinner(round, index, name)),
 });
 
 class KnockoutMatch extends Component {
   constructor(props) {
-    super(props);
-    this.state = { selectedWinner: null };
-    this.selectWinner = this.selectWinner.bind(this);
-  }
+  super(props);
+  this.state = { selectedWinner: this.winnerSlotFromStore(props) };
+  this.selectWinner = this.selectWinner.bind(this);
+}
 
-  componentDidUpdate(prevProps) {
-    // If either team in this match changed (an upstream re-pick), clear the
-    // stale selection so the user re-picks with the new teams.
-    const p = prevProps.data;
-    const c = this.props.data;
-    const t1Changed = p.team1 && c.team1 && p.team1.name !== c.team1.name;
-    const t2Changed = p.team2 && c.team2 && p.team2.name !== c.team2.name;
-    if (t1Changed || t2Changed) {
-      this.setState({ selectedWinner: null }); // eslint-disable-line react/no-did-update-set-state
-    }
+winnerSlotFromStore(props) {
+  const d = props.data;
+  if (!d.winnerName || !d.team1 || !d.team2) return null;
+  if (d.team1.name === d.winnerName) return 'team1';
+  if (d.team2.name === d.winnerName) return 'team2';
+  return null;
+}
+
+componentDidUpdate(prevProps) {
+  const p = prevProps.data;
+  const c = this.props.data;
+  const t1Changed = p.team1 && c.team1 && p.team1.name !== c.team1.name;
+  const t2Changed = p.team2 && c.team2 && p.team2.name !== c.team2.name;
+
+  if (t1Changed || t2Changed) {
+    // teams changed -> stale pick; re-derive (will be null if winnerName no longer matches)
+    this.setState({ selectedWinner: this.winnerSlotFromStore(this.props) }); // eslint-disable-line react/no-did-update-set-state
+  } else if (p.winnerName !== c.winnerName) {
+    this.setState({ selectedWinner: this.winnerSlotFromStore(this.props) }); // eslint-disable-line react/no-did-update-set-state
   }
+}
 
   findMatch(num) {
     let round = -1;
@@ -92,6 +103,17 @@ class KnockoutMatch extends Component {
     }
   }
 
+  selectWinner(slot) {
+    const data = this.props.data;
+    if (!data.team1 || !data.team2 || !data.team1.name || !data.team2.name) return;
+    const winner = slot === 'team1' ? data.team1 : data.team2;
+    const loser = slot === 'team1' ? data.team2 : data.team1;
+    this.setState({ selectedWinner: slot });
+    const self = this.findMatch(data.num);                              // <-- add
+    if (self.round !== -1) this.props.setMatchWinner(self.round, self.index, winner.name); // <-- add
+    this.routeWinner(winner, loser);
+  }
+
   checkFutureRounds(losingTeam) {
     const knockouts = [...this.props.knockouts];
     const removeTeamArr = [];
@@ -143,6 +165,7 @@ KnockoutMatch.propTypes = {
   champions: PropTypes.object.isRequired,
   updateChampions: PropTypes.func.isRequired,
   removeChampions: PropTypes.func.isRequired,
+  setMatchWinner: PropTypes.func.isRequired,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(KnockoutMatch);
