@@ -16,8 +16,19 @@ class ResultModal extends Component {
   constructor(props) {
     super(props);
     this.cardRef = React.createRef();
+    this.state = { logoSrc: '/ahw.png' };
     this.download = this.download.bind(this);
   }
+
+  componentDidMount() {
+  fetch('https://arabhardware.net/theme-assets/images/logo.svg', { mode: 'cors' })
+    .then((r) => r.text())
+    .then((svg) => {
+      const dataUrl = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+      this.setState({ logoSrc: dataUrl });
+    })
+    .catch(() => { /* keep the /ahw.png fallback */ });
+}
 
   // Find a knockout match by num across rounds.
   findMatch(num) {
@@ -61,6 +72,7 @@ class ResultModal extends Component {
         backgroundColor: '#16235e',
         scale: 2,
         useCORS: true,
+        imageTimeout: 0,
       });
       const link = document.createElement('a');
       link.download = 'world-cup-2026-prediction.png';
@@ -92,7 +104,7 @@ class ResultModal extends Component {
           {/* This block is what gets captured as the image */}
           <div className="rm-card" ref={this.cardRef}>
             <div className="rm-logo">
-              <img id='arabhardware-logo' src="https://arabhardware.net/theme-assets/images/logo.svg" alt="Arabhardware Logo" />
+              <img id='arabhardware-logo' src={this.state.logoSrc} alt="Arabhardware Logo" />
               <span className="rm-logo-text">ArabHardware</span>
             </div>
             <div className="rm-card-header">FIFA World Cup 2026</div>

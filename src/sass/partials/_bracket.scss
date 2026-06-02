@@ -127,3 +127,17 @@
   font-weight: 700;
   margin-left: 6px;
 }
+
+.bracket-4 .bracket-team:nth-of-type(even)::after {
+  height: 350%;
+  top: -300%;
+  border-right-style: solid;
+  border-bottom-style: solid;
+}
+
+/* hide the SF->Final connectors on mobile, same specificity, later in source */
+@media (max-width: 1000px) {
+  .bracket-4 .bracket-team::after {
+    display: none;
+  }
+}
