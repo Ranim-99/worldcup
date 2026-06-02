@@ -136,7 +136,7 @@ KnockoutMatch.propTypes = {
   knockouts: PropTypes.array.isRequired,
   updateKnockout: PropTypes.func.isRequired,
   data: PropTypes.object.isRequired,
-  first: PropTypes.number.isRequired,
+  first: PropTypes.number,
   round: PropTypes.number.isRequired,
   home: PropTypes.number.isRequired,
   removeTeam: PropTypes.func.isRequired,

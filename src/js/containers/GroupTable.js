@@ -13,11 +13,84 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-  updateQualifier: (teams, index1, index2, round) =>
-    dispatch(updateQualifier(teams, index1, index2, round)),
+  updateQualifier: (payload, round) => dispatch(updateQualifier(payload, round)),
   removeTeam: (round, match, home) => dispatch(removeTeam(round, match, home)),
   removeChampions: (team) => dispatch(removeChampions(team)),
+  reportThird: (group, team) => dispatch(reportThird(group, team)),
 });
+
+// Order a group's teams per the FIFA 2026 tiebreakers:
+//   1 points
+//   2-4 head-to-head among tied teams: pts, GD, goals
+//   5 overall GD, 6 overall goals
+//   7 fair play (no card data in a predictor -> treated as 0)
+//   8 drawing of lots (deterministic by name)
+// Head-to-head is re-applied to any subset that remains tied, per the rules.
+function rankGroup(teams, matches) {
+  const miniTable = (group) => {
+    const names = group.map((t) => t.name);
+    const s = {};
+    names.forEach((n) => { s[n] = { pts: 0, gd: 0, gf: 0 }; });
+    matches.forEach((m) => {
+      if (!m.team1 || !m.team2) return;
+      if (m.score1 == null || m.score2 == null) return;
+      const a = m.team1.name;
+      const b = m.team2.name;
+      if (names.indexOf(a) === -1 || names.indexOf(b) === -1) return;
+      s[a].gf += m.score1; s[a].gd += m.score1 - m.score2;
+      s[b].gf += m.score2; s[b].gd += m.score2 - m.score1;
+      if (m.score1 > m.score2) s[a].pts += 3;
+      else if (m.score2 > m.score1) s[b].pts += 3;
+      else { s[a].pts += 1; s[b].pts += 1; }
+    });
+    return s;
+  };
+
+  const overallFallback = (group) =>
+    [...group].sort((x, y) =>
+      (y.gd - x.gd) ||
+      (y.gf - x.gf) ||
+      ((x.fair || 0) - (y.fair || 0)) ||
+      x.name.localeCompare(y.name));
+
+  const breakTies = (group) => {
+    if (group.length <= 1) return group;
+    const mt = miniTable(group);
+    const sorted = [...group].sort((x, y) =>
+      (mt[y.name].pts - mt[x.name].pts) ||
+      (mt[y.name].gd - mt[x.name].gd) ||
+      (mt[y.name].gf - mt[x.name].gf) || 0);
+
+    const out = [];
+    let i = 0;
+    while (i < sorted.length) {
+      let j = i + 1;
+      while (j < sorted.length
+        && mt[sorted[j].name].pts === mt[sorted[i].name].pts
+        && mt[sorted[j].name].gd === mt[sorted[i].name].gd
+        && mt[sorted[j].name].gf === mt[sorted[i].name].gf) j += 1;
+      const tied = sorted.slice(i, j);
+      if (tied.length === 1) out.push(tied[0]);
+      else if (tied.length < group.length) out.push(...breakTies(tied)); // re-apply H2H
+      else out.push(...overallFallback(tied));                          // H2H didn't separate
+      i = j;
+    }
+    return out;
+  };
+
+  const byPoints = [...teams].sort((a, b) => b.pts - a.pts);
+  const result = [];
+  let i = 0;
+  while (i < byPoints.length) {
+    let j = i + 1;
+    while (j < byPoints.length && byPoints[j].pts === byPoints[i].pts) j += 1;
+    const tied = byPoints.slice(i, j);
+    if (tied.length === 1) result.push(tied[0]);
+    else result.push(...breakTies(tied));
+    i = j;
+  }
+  return result;
+}
 
 class GroupTable extends Component {
   constructor(props) {
@@ -51,7 +124,6 @@ class GroupTable extends Component {
       if (el.team2.name && teams.findIndex((x) => x.name === el.team2.name) === -1) {
         teams.push({ name: el.team2.name, code: el.team2.code });
       }
-      return null;
     });
     this.setState({ teams });
   }
@@ -236,14 +308,15 @@ class GroupTable extends Component {
 
 GroupTable.propTypes = {
   knockouts: PropTypes.array.isRequired,
-  first: PropTypes.number.isRequired,
-  second: PropTypes.number.isRequired,
   name: PropTypes.string.isRequired,
-  updateQualifier: PropTypes.func.isRequired,
+  winner: PropTypes.object.isRequired,
+  runnerUp: PropTypes.object.isRequired,
   data: PropTypes.object.isRequired,
+  updateQualifier: PropTypes.func.isRequired,
   removeTeam: PropTypes.func.isRequired,
   champions: PropTypes.object.isRequired,
   removeChampions: PropTypes.func.isRequired,
+  reportThird: PropTypes.func.isRequired,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(GroupTable);

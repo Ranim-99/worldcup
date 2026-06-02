@@ -4,6 +4,9 @@ import { KNOCKOUT_DATA_FETCHED, UPDATE_QUALIFIER, UPDATE_KNOCKOUT,
   UPDATE_SCORE, DATA_FETCHED, LOADING_DATA, LOADING_ERROR, REMOVE_TEAM,
   UPDATE_CHAMPIONS, REMOVE_CHAMPIONS, UPDATE_KNOCKOUT_SCORE } from '../constants/action-types';
 
+import { assignThirds } from '../data/thirdPlaceAllocation';
+import { REPORT_THIRD } from '../constants/action-types';
+
 export function loadingError(bool) {
   return {
     type: LOADING_ERROR,
@@ -54,20 +57,11 @@ export function loadingData(bool) {
   };
 }
 
-function updateQual(teams, index1, index2, round) {
-  return {
-    type: UPDATE_QUALIFIER,
-    teams,
-    index1,
-    index2,
-    round,
-  };
+function updateQual(payload, round) {
+  return { type: UPDATE_QUALIFIER, payload, round };
 }
-
-export function updateQualifier(teams, index1, index2, round) {
-  return (dispatch) => {
-    dispatch(updateQual(teams, index1, index2, round));
-  };
+export function updateQualifier(payload, round) {
+  return (dispatch) => dispatch(updateQual(payload, round));
 }
 
 function removeMatch(round, match, home) {
