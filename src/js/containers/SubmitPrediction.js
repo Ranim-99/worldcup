@@ -1,13 +1,24 @@
-// SubmitPrediction.js
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+
+import { advance } from '../data/matchData';
+import ResultModal from './ResultModal';
 
 const mapStateToProps = (state) => ({
   champions: state.champions,
   groups: state.groups,
   knockouts: state.knockouts,
+  thirds: state.thirds,
 });
+
+const THIRD_SLOTS = [74, 77, 79, 80, 81, 82, 85, 87];
+const STANDINGS_URL = 'https://gaming.arabhardware.net/standings';
+
+const scrollTo = (id) => {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
 
 class SubmitPrediction extends Component {
   constructor(props) {
@@ -15,280 +26,170 @@ class SubmitPrediction extends Component {
     this.state = {
       isSubmitting: false,
       isSubmitted: false,
+      showResult: false,
+      alreadySubmitted: false,
       error: null,
     };
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
-  // Extract ID from URL search parameters
   getUserIdFromUrl() {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('ui');
+    return new URLSearchParams(window.location.search).get('ui');
   }
 
-  // Check if all knockout matches have scores (non-null values)
-  areKnockoutsComplete() {
-    return this.props.knockouts.every(round =>
-      round.matches.every(match => 
-        match.score1 !== null && match.score2 !== null &&
-        match.score1 !== undefined && match.score2 !== undefined
-      )
-    );
-  }
-
-  // Check if prediction is complete (all group matches + all knockouts + champion)
-  isPredictionComplete() {
-    // Check if all group matches have scores
-    const allGroupMatchesComplete = this.props.groups.every(group =>
-      group.matches.every(match => 
-        match.score1 !== null && match.score2 !== null &&
-        match.score1 !== undefined && match.score2 !== undefined
-      )
-    );
-
-    // Check if all knockout matches have scores
-    const allKnockoutMatchesComplete = this.areKnockoutsComplete();
-
-    // Check if knockout prediction is complete (has champion)
-    const knockoutComplete = this.props.champions && this.props.champions.name;
-
-    return allGroupMatchesComplete && allKnockoutMatchesComplete && knockoutComplete;
-  }
-
-  // Check if only groups are complete (for partial submission option)
   areGroupsComplete() {
-    return this.props.groups.every(group =>
-      group.matches.every(match => 
-        match.score1 !== null && match.score2 !== null &&
-        match.score1 !== undefined && match.score2 !== undefined
-      )
-    );
+    return Object.keys(this.props.thirds || {}).length === 12;
   }
 
-  // Check completion status for display
-  getCompletionStatus() {
-    const groupsComplete = this.areGroupsComplete();
-    const knockoutsComplete = this.areKnockoutsComplete();
-    const championSelected = this.props.champions && this.props.champions.name;
-    
-    if (groupsComplete && knockoutsComplete && championSelected) {
-      return { status: 'complete', message: 'All predictions complete!' };
-    } else if (groupsComplete && !knockoutsComplete) {
-      return { status: 'partial', message: 'Group stage complete - finish knockout predictions!' };
-    } else if (groupsComplete && knockoutsComplete && !championSelected) {
-      return { status: 'partial', message: 'Knockout matches complete - champion will be determined automatically!' };
-    } else {
-      return { status: 'incomplete', message: 'Complete group stage predictions first' };
-    }
+  areThirdsComplete() {
+    const r32 = this.props.knockouts[0];
+    if (!r32) return false;
+    return THIRD_SLOTS.every((num) => {
+      const m = r32.matches.find((x) => x.num === num);
+      return m && m.team2 && m.team2.name;
+    });
   }
 
-  // Collect all prediction data including user ID
+  areKnockoutsComplete() {
+    if (!this.props.knockouts.length) return false;
+    return this.props.knockouts.every((round) =>
+      round.matches.every((m) => m.team1 && m.team1.name && m.team2 && m.team2.name));
+  }
+
+  championSelected() {
+    return !!(this.props.champions && this.props.champions.name);
+  }
+
+  isComplete() {
+    return this.areGroupsComplete() && this.areThirdsComplete()
+      && this.areKnockoutsComplete() && this.championSelected();
+  }
+
+  // All four team names of a group, from its fixtures.
+  groupTeams(groupName) {
+    const g = this.props.groups.find((x) => x.name === groupName);
+    if (!g) return [];
+    const names = [];
+    g.matches.forEach((m) => {
+      if (m.team1 && m.team1.name && !names.includes(m.team1.name)) names.push(m.team1.name);
+      if (m.team2 && m.team2.name && !names.includes(m.team2.name)) names.push(m.team2.name);
+    });
+    return names;
+  }
+
   collectPredictionData() {
-    const userId = this.getUserIdFromUrl();
-    
-    const predictionData = {
-      id: userId,
+    const r32 = this.props.knockouts[0];
+
+    const groupsPayload = advance[0].matches.map((g) => {
+      const letter = String.fromCharCode(65 + g.group);
+      const wMatch = r32 ? r32.matches.find((m) => m.num === g.winner.num) : null;
+      const rMatch = r32 ? r32.matches.find((m) => m.num === g.runnerUp.num) : null;
+      const first = wMatch && wMatch[g.winner.slot] ? wMatch[g.winner.slot].name : null;
+      const second = rMatch && rMatch[g.runnerUp.slot] ? rMatch[g.runnerUp.slot].name : null;
+      const third = this.props.thirds[letter] ? this.props.thirds[letter].name : null;
+      const fourth = this.groupTeams(`Group ${letter}`)
+        .find((t) => t !== first && t !== second && t !== third) || null;
+      return { group: `Group ${letter}`, first, second, third, fourth };
+    });
+
+    const knockoutsPayload = this.props.knockouts.map((round) => ({
+      round: round.name,
+      matches: round.matches.map((m) => ({
+        num: m.num,
+        team1: m.team1 ? m.team1.name : null,
+        team2: m.team2 ? m.team2.name : null,
+        winner: m.winnerName || null,
+      })),
+    }));
+
+    return {
+      id: this.getUserIdFromUrl(),
       champion: this.props.champions,
-      groups: this.props.groups.map(group => ({
-        name: group.name,
-        matches: group.matches.map(match => ({
-          team1: match.team1.name,
-          team2: match.team2.name,
-          score1: match.score1,
-          score2: match.score2,
-        }))
-      })),
-      knockouts: this.props.knockouts.map((round, roundIndex) => ({
-        round: roundIndex,
-        matches: round.matches.map(match => ({
-          team1: match.team1.name,
-          team2: match.team2.name,
-          score1: match.score1,
-          score2: match.score2,
-          num: match.num,
-        }))
-      })),
+      groups: groupsPayload,
+      knockouts: knockoutsPayload,
       timestamp: new Date().toISOString(),
     };
-
-    return predictionData;
-  }
-async handleSubmit() {
-  const completionStatus = this.getCompletionStatus();
-  
-  if (completionStatus.status !== 'complete') {
-    alert(`Please complete all predictions! ${completionStatus.message}`);
-    return;
   }
 
-  // Check if user ID exists in URL
-  const userId = this.getUserIdFromUrl();
-  if (!userId) {
-    alert('User ID is missing from the URL. Please make sure you accessed this page with a valid user ID parameter (?ui=yourId)');
-    return;
-  }
-
-  this.setState({ isSubmitting: true, error: null });
-
-  try {
-    const predictionData = this.collectPredictionData();
-    
-    // Log to console as requested
-    console.log('Submitting prediction data:', predictionData);
-
-    const response = await fetch('https://gaming.arabhardware.net/api/v1/predict-result', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(predictionData),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+  async handleSubmit() {
+    if (!this.isComplete()) {
+      alert('Please complete all stages first.');
+      return;
     }
+    const userId = this.getUserIdFromUrl();
+    if (!userId) { alert('User ID is missing from the URL (?ui=yourId).'); return; }
 
-    // Try to parse as JSON, but handle non-JSON responses gracefully
-    let result;
-    const responseText = await response.text();
-    
+    this.setState({ isSubmitting: true, error: null });
     try {
-      result = JSON.parse(responseText);
-      console.log('Prediction submitted successfully', result);
-    } catch (parseError) {
-      result = responseText;
-      console.log('Prediction submitted successfully:', result);
+      const response = await fetch('https://gaming.arabhardware.net/api/v1/predict-result', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(this.collectPredictionData()),
+      });
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        // Already submitted is not a failure — show their result instead.
+        if (response.status === 400 && /already/i.test(result.message || '')) {
+          this.setState({ isSubmitting: false, isSubmitted: true, showResult: true, alreadySubmitted: true });
+          return;
+        }
+        throw new Error(result.message || `HTTP error! status: ${response.status}`);
+      }
+
+      this.setState({ isSubmitting: false, isSubmitted: true, showResult: true });
+    } catch (error) {
+      this.setState({ isSubmitting: false, error: error.message });
+      alert(`Error submitting prediction: ${error.message}`);
     }
-    
-    this.setState({ 
-      isSubmitting: false, 
-      isSubmitted: true 
-    });
-
-    alert('Prediction submitted successfully! You will be redirected.');
-
-    // setTimeout(() => {
-      window.location.href = `https://gaming.arabhardware.net?ui=${userId}`;
-    // }, 3000000000);
-
-  } catch (error) {
-    console.error('Error submitting prediction:', error);
-    this.setState({ 
-      isSubmitting: false, 
-      error: error.message 
-    });
-    alert(`Error submitting prediction: ${error.message}`);
   }
-}
 
   render() {
-    const { isSubmitting, isSubmitted, error } = this.state;
-    const completionStatus = this.getCompletionStatus();
+    const { isSubmitting, isSubmitted, showResult, alreadySubmitted, error } = this.state;
     const userId = this.getUserIdFromUrl();
-    
+    const complete = this.isComplete();
+    const champOk = this.championSelected();
+
     return (
-      <div className="submit-prediction-container">
-        <div className="prediction-status">
-          <div className={`status-indicator ${completionStatus.status}`}>
-            {completionStatus.status === 'complete' && '✅'}
-            {completionStatus.status === 'partial' && '⚠️'}
-            {completionStatus.status === 'incomplete' && '❌'}
-            <span>{completionStatus.message}</span>
-          </div>
-          
-          {/* Warning if no user ID */}
-          {!userId && (
-            <div className="user-id-warning">
-              <small style={{ color: '#dc3545' }}>
-                ⚠️ No user ID found in URL. Please access this page with ?ui=yourId parameter.
-              </small>
-            </div>
-          )}
+      <>
+        <div className="bottom-bar">
+          <button type="button" onClick={() => { this.props.goToGroups(); setTimeout(() => scrollTo('sec-groups'), 50); }}>Groups</button>
+<button type="button" onClick={() => { this.props.goToGroups(); setTimeout(() => scrollTo('sec-thirds'), 50); }}>Thirds</button>
+<button type="button" onClick={() => { this.props.goToKnockouts(); setTimeout(() => scrollTo('sec-knockouts'), 50); }}>Knockouts</button>
+          <button
+            type="button"
+            onClick={() => this.setState({ showResult: true })}
+            disabled={!champOk}
+          >
+            Champion
+          </button>
+          <button
+            type="button"
+            className="bb-save"
+            onClick={this.handleSubmit}
+            disabled={isSubmitting || isSubmitted || !complete || !userId}
+          >
+            {isSubmitting ? 'Saving…' : isSubmitted ? 'Saved ✓' : 'Save'}
+          </button>
         </div>
 
-        {/* Show champion if selected */}
-        {this.props.champions && this.props.champions.name && (
-          <div className="champion-display">
-            <h3>🏆 Your Predicted Champion: {this.props.champions.name}</h3>
+        {!complete && (
+          <div className="bottom-hint">
+            {!this.areGroupsComplete() ? 'Order all 12 groups'
+              : !this.areThirdsComplete() ? 'Pick the 8 best third-placed teams'
+                : !champOk ? 'Finish the bracket and pick a champion'
+                  : 'Complete the bracket'}
           </div>
         )}
+        {error && <div className="bottom-hint bottom-hint--err">Error: {error}</div>}
 
-        {/* Show progress indicators */}
-        <div className="progress-indicators">
-          <div className={`progress-item ${this.areGroupsComplete() ? 'complete' : 'incomplete'}`}>
-            <span className="progress-icon">{this.areGroupsComplete() ? '✅' : '⭕'}</span>
-            <span>Group Stage Predictions</span>
-          </div>
-          <div className={`progress-item ${this.areKnockoutsComplete() ? 'complete' : 'incomplete'}`}>
-            <span className="progress-icon">{this.areKnockoutsComplete() ? '✅' : '⭕'}</span>
-            <span>Knockout Stage Predictions</span>
-          </div>
-          <div className={`progress-item ${this.props.champions && this.props.champions.name ? 'complete' : 'incomplete'}`}>
-            <span className="progress-icon">{this.props.champions && this.props.champions.name ? '✅' : '⭕'}</span>
-            <span>Champion Selection</span>
-          </div>
-        </div>
-
-        {/* Show redirect countdown if submitted */}
-        {isSubmitted && (
-          <div style={{
-            background: '#d4edda',
-            border: '1px solid #c3e6cb',
-            padding: '15px',
-            margin: '15px 0',
-            borderRadius: '4px',
-            textAlign: 'center'
-          }}>
-            <strong>🎉 Prediction Submitted Successfully!</strong>
-            <div style={{ marginTop: '10px', fontSize: '14px' }}>
-              You will be redirected to gaming.arabhardware.net in 30 seconds...
-            </div>
-            <button 
-              onClick={() => window.location.href = 'https://gaming.arabhardware.net'}
-              style={{
-                marginTop: '10px',
-                padding: '8px 16px',
-                background: '#28a745',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer'
-              }}
-            >
-              Go Now
-            </button>
-          </div>
-        )}
-        
-        <button
-          className={`submit-prediction-btn ${isSubmitting ? 'loading' : ''} ${isSubmitted ? 'submitted' : ''} ${(completionStatus.status !== 'complete' || !userId) ? 'disabled' : ''}`}
-          onClick={this.handleSubmit}
-          disabled={isSubmitting || isSubmitted || completionStatus.status !== 'complete' || !userId}
-        >
-          {isSubmitting ? (
-            <>
-              <span className="spinner"></span>
-              Submitting Prediction...
-            </>
-          ) : isSubmitted ? (
-            '✓ Prediction Submitted!'
-          ) : !userId ? (
-            'Missing User ID in URL'
-          ) : completionStatus.status === 'complete' ? (
-            'Submit My Complete Prediction'
-          ) : completionStatus.status === 'partial' ? (
-            'Complete All Stages First'
-          ) : (
-            'Complete Group Stage First'
-          )}
-        </button>
-
-        {error && (
-          <div className="error-message">
-            Error: {error}
-          </div>
-        )}
-      </div>
+        <ResultModal
+          open={showResult}
+          onClose={() => this.setState({ showResult: false })}
+          standingsUrl={STANDINGS_URL}
+          alreadySubmitted={alreadySubmitted}
+        />
+      </>
     );
   }
 }
@@ -297,6 +198,9 @@ SubmitPrediction.propTypes = {
   champions: PropTypes.object.isRequired,
   groups: PropTypes.array.isRequired,
   knockouts: PropTypes.array.isRequired,
+  thirds: PropTypes.object.isRequired,
+  goToGroups: PropTypes.func.isRequired,
+  goToKnockouts: PropTypes.func.isRequired,
 };
 
 export default connect(mapStateToProps)(SubmitPrediction);

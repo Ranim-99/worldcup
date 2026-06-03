@@ -1,13 +1,55 @@
 import processInitialState from '../helpers/processInitialState';
 import processInitialPredictorState from '../helpers/processInitialPredictorState';
-import { KNOCKOUT_DATA_FETCHED, UPDATE_QUALIFIER, UPDATE_KNOCKOUT,
+import {
+  KNOCKOUT_DATA_FETCHED, UPDATE_QUALIFIER, UPDATE_KNOCKOUT,
   UPDATE_SCORE, DATA_FETCHED, LOADING_DATA, LOADING_ERROR, REMOVE_TEAM,
-  UPDATE_CHAMPIONS, REMOVE_CHAMPIONS, UPDATE_KNOCKOUT_SCORE } from '../constants/action-types';
+  UPDATE_CHAMPIONS, REMOVE_CHAMPIONS, UPDATE_KNOCKOUT_SCORE,
+  SET_WINNER,
+} from '../constants/action-types';
+
+import { assignThirds } from '../data/thirdPlaceAllocation';
+import { REPORT_THIRD } from '../constants/action-types';
 
 export function loadingError(bool) {
   return {
     type: LOADING_ERROR,
     isError: bool,
+  };
+}
+
+const THIRD_SLOT_MATCHES = [74, 77, 79, 80, 81, 82, 85, 87];
+
+function applyThirds(dispatch, thirds, knockouts) {
+  const r32 = knockouts[0];
+  if (!r32) return;
+  const findIdx = (num) => r32.matches.findIndex((m) => m.num === num);
+
+  // Clear the eight third slots whenever group picks change.
+  THIRD_SLOT_MATCHES.forEach((num) => {
+    const idx = findIdx(num);
+    if (idx !== -1) {
+      dispatch(updateKnockout([{ name: null, code: null }], idx, 0, 'team2', []));
+    }
+  });
+
+  // --- Automatic allocation DISABLED: ThirdPlacePicker now fills these
+  // slots manually from the user's 8-of-12 selection. ---
+  // if (Object.keys(thirds).length === 12) {
+  //   const fills = assignThirds(thirds);
+  //   if (fills) {
+  //     fills.forEach((f) => {
+  //       const idx = findIdx(f.matchNum);
+  //       if (idx !== -1) dispatch(updateKnockout([f.team], idx, 0, 'team2', []));
+  //     });
+  //   }
+  // }
+}
+
+export function reportThird(group, team) {
+  return (dispatch, getState) => {
+    dispatch({ type: REPORT_THIRD, group, team });
+    const { thirds, knockouts } = getState();
+    applyThirds(dispatch, thirds, knockouts);
   };
 }
 
@@ -18,20 +60,15 @@ export function loadingData(bool) {
   };
 }
 
-function updateQual(teams, index1, index2, round) {
-  return {
-    type: UPDATE_QUALIFIER,
-    teams,
-    index1,
-    index2,
-    round,
-  };
+function updateQual(payload, round) {
+  return { type: UPDATE_QUALIFIER, payload, round };
+}
+export function updateQualifier(payload, round) {
+  return (dispatch) => dispatch(updateQual(payload, round));
 }
 
-export function updateQualifier(teams, index1, index2, round) {
-  return (dispatch) => {
-    dispatch(updateQual(teams, index1, index2, round));
-  };
+export function setMatchWinner(round, index, winnerName) {
+  return { type: SET_WINNER, round, index, winnerName };
 }
 
 function removeMatch(round, match, home) {

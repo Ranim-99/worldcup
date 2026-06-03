@@ -44,9 +44,13 @@ const resetStateOnFirstLoad = () => {
   return false;
 };
 
+const resetState = () => {
+  localStorage.removeItem('worldCupPredictorState');
+};
+
 export default function store(preloadedState) {
   // Reset state on first load (page refresh)
-  const wasReset = resetStateOnFirstLoad();
+  const wasReset = resetState();
 
   // if (wasReset) {
   //   store.dispatch({ type: REMOVE_CHAMPIONS });

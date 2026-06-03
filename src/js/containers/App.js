@@ -10,8 +10,9 @@ import Header from "../components/Header";
 
 import { fetchData, fetchPredictor } from "../actions/index";
 import { advance } from "../data/matchData";
-import { API2014, API2018 } from "../constants/api";
+import { API2014, API2018, API2026 } from "../constants/api";
 import SubmitPrediction from "./SubmitPrediction";
+import ThirdPlacePicker from "./ThirdPlacePicker";
 
 const mapStateToProps = (state) => ({
   groups: state.groups,
@@ -31,7 +32,7 @@ class App extends Component {
     this.state = {
       knockout: false,
       showInfo: true,
-      year: "2025 Predictor",
+      year: "2026",
     };
     this.toggleRound = this.toggleRound.bind(this);
     this.handleYearChange = this.handleYearChange.bind(this);
@@ -42,7 +43,7 @@ class App extends Component {
   }
 
   componentDidMount() {
-    this.props.fetchPredictor(API2018);
+    this.props.fetchPredictor(API2026);
   }
 
   keyDownToggle(e) {
@@ -63,10 +64,10 @@ class App extends Component {
   handleYearSubmit(e) {
     e.preventDefault();
     if (this.state.year === "2014 Results") {
-      this.props.fetchData(API2014);
+      this.props.fetchData(API2026);
     } else if (this.state.year === "2018 Results") {
-      this.props.fetchData(API2018);
-      this.props.fetchData(API2018);
+      this.props.fetchData(API2026);
+      this.props.fetchData(API2026);
     } else if (this.state.year === "2018 Predictor") {
       this.props.fetchPredictor("https://raw.githubusercontent.com/SamehBilal/fcwc/main/public/worldcup2.json");
     }
@@ -95,18 +96,12 @@ class App extends Component {
 
     // Map groups games to component
     const groups = this.props.groups.map((el, i) => {
-      const games = el.matches.map((data, j) => (
-        <GroupGames data={data} key={data.num} group={i} index={j} />
-      ));
+      /*  const games = el.matches.map((data, j) => (
+         <GroupGames data={data} key={data.num} group={i} index={j} />
+       )); */
       // Find which match the groups winners and runners up will play in the 'Last 16'
-      let first;
-      let second;
-      advance[0].matches.filter((a) => {
-        if (a.group === i) {
-          [first, second] = a.num;
-        }
-        return null;
-      });
+      let routing;
+      advance[0].matches.forEach((a) => { if (a.group === i) routing = a; });
       return (
         <div
           key={el.name}
@@ -116,12 +111,12 @@ class App extends Component {
           <GroupTable
             key={el.name}
             name={el.name}
-            first={first}
-            second={second}
+            winner={routing.winner}
+            runnerUp={routing.runnerUp}
             data={el}
             index={i}
           />
-          {games}
+          {/* {games} */}
         </div>
       );
     });
@@ -132,7 +127,8 @@ class App extends Component {
           <div>Go to Group:</div>
           <div className="link-container">{links}</div>
         </div>
-        <div className="group-stage">{groups}</div>
+        <div id="sec-groups" className="group-stage">{groups}</div>
+        <div id="sec-thirds"><ThirdPlacePicker /></div>
       </div>
     );
   }
@@ -142,27 +138,31 @@ class App extends Component {
     // Map the game the winner of each match will play in the first variable
     const knockoutList = knockoutGames.map((round, i) =>
       round.matches.map((el, j) => {
-        const first = advance[i + 1].matches[j].num;
-        // Map if the winner will be the home or away team in next match
-        const home = advance[i + 1].matches[j].index;
+        const routeEntry = advance[i + 1].matches.find((a) => a.from === el.num);
+        const first = routeEntry ? routeEntry.num : null;
+        const home = routeEntry ? routeEntry.index : 0;
         return (
           <KnockoutMatch
-            key={el.num}
+            key={el.num != null ? el.num : `r${i}-${j}`}
             round={i + 1}
             first={first}
             home={home + 1}
-            data={knockoutGames[i].matches[j]}
+            data={el}
           />
         );
       })
     );
 
-    const knockoutRounds = knockoutList.map((el, i) => {
-      const key = "round" + i;
-      return <Knockout key={key} data={el} round={i} />;
-    });
+    const knockoutRounds = knockoutList.map((el, i) => (
+      <Knockout
+        key={"round" + i}
+        data={el}
+        round={i}
+        name={this.props.knockouts[i] ? this.props.knockouts[i].name : ''}
+      />
+    ));
 
-    return <div className="knockout-container">{knockoutRounds}</div>;
+    return <div id="sec-knockouts" className="knockout-container">{knockoutRounds}</div>;
   }
 
   render() {
@@ -195,7 +195,10 @@ class App extends Component {
           keyDownCloseInfo={this.keyDownCloseInfo}
         />
         <div className="container">{displayStage}
-        <SubmitPrediction />
+          <SubmitPrediction
+            goToGroups={() => this.setState({ knockout: false })}
+            goToKnockouts={() => this.setState({ knockout: true })}
+          />
         </div>
       </div>
     );
