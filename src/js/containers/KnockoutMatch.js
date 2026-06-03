@@ -3,212 +3,132 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
 import KnockoutGameComponent from '../components/KnockoutGameComponent';
-import { updateKnockout, removeTeam, updateChampions, removeChampions, updateKnockoutScore } from '../actions/index';
+import { updateKnockout, removeTeam, updateChampions, removeChampions, setMatchWinner } from '../actions/index';
+import { FINAL_MATCH_NUM, THIRD_PLACE_MATCH_NUM } from '../data/matchData';
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
   knockouts: state.knockouts,
   champions: state.champions,
 });
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch) => ({
   updateKnockout: (teams, index1, round, home, scores) =>
     dispatch(updateKnockout(teams, index1, round, home, scores)),
-  updateKnockoutScore: (round, matchIndex, score1, score2) =>
-    dispatch(updateKnockoutScore(round, matchIndex, score1, score2)),
   removeTeam: (round, match, home) => dispatch(removeTeam(round, match, home)),
-  updateChampions: team => dispatch(updateChampions(team)),
-  removeChampions: team => dispatch(removeChampions(team)),
+  updateChampions: (team) => dispatch(updateChampions(team)),
+  removeChampions: (team) => dispatch(removeChampions(team)),
+  setMatchWinner: (round, index, name) => dispatch(setMatchWinner(round, index, name)),
 });
 
 class KnockoutMatch extends Component {
   constructor(props) {
-    super(props);
-    this.state = {
-      homeScore: this.props.data.score1 !== null ? this.props.data.score1 : 0,
-      awayScore: this.props.data.score2 !== null ? this.props.data.score2 : 0,
-    };
-    this.handleInputChange = this.handleInputChange.bind(this);
-    this.handleKeyDown = this.handleKeyDown.bind(this);
-    this.calculateResult = this.calculateResult.bind(this);
-    this.handleClick = this.handleClick.bind(this);
-    this.updateScores = this.updateScores.bind(this);
-    this.score1Input = React.createRef();
-    this.score2Input = React.createRef();
-  }
+  super(props);
+  this.state = { selectedWinner: this.winnerSlotFromStore(props) };
+  this.selectWinner = this.selectWinner.bind(this);
+}
 
-  componentDidMount() {
-    // Initialize with existing scores if they exist
-    if (this.props.data.score1 !== null || this.props.data.score2 !== null) {
-      this.setState({
-        homeScore: this.props.data.score1 || 0,
-        awayScore: this.props.data.score2 || 0,
-      });
-    }
-    
-    // If a match has an actual result then calculate which team progressed
-    if (this.props.data.score1 !== null && this.props.data.score2 !== null) {
-      this.calculateResult();
-    }
-  }
+winnerSlotFromStore(props) {
+  const d = props.data;
+  if (!d.winnerName || !d.team1 || !d.team2) return null;
+  if (d.team1.name === d.winnerName) return 'team1';
+  if (d.team2.name === d.winnerName) return 'team2';
+  return null;
+}
 
-  componentDidUpdate(prevProps) {
-    // Update local state if props change
-    if (prevProps.data.score1 !== this.props.data.score1 || 
-        prevProps.data.score2 !== this.props.data.score2) {
-      this.setState({
-        homeScore: this.props.data.score1 !== null ? this.props.data.score1 : 0,
-        awayScore: this.props.data.score2 !== null ? this.props.data.score2 : 0,
-      });
-    }
-  }
+componentDidUpdate(prevProps) {
+  const p = prevProps.data;
+  const c = this.props.data;
+  const t1Changed = p.team1 && c.team1 && p.team1.name !== c.team1.name;
+  const t2Changed = p.team2 && c.team2 && p.team2.name !== c.team2.name;
 
-  updateScores(homeScore, awayScore) {
-    // Update local state
-    this.setState({
-      homeScore: homeScore,
-      awayScore: awayScore,
-    }, () => {
-      // First, update the scores in Redux using the dedicated score update action
-      this.updateKnockoutScores(homeScore, awayScore);
-      
-      // Then calculate result if both teams exist
-      if (this.props.data.team1.name && this.props.data.team2.name) {
-        // Use setTimeout to ensure the Redux store is updated before calculating result
-        setTimeout(() => {
-          this.calculateResult();
-        }, 0);
-      }
+  if (t1Changed || t2Changed) {
+    // teams changed -> stale pick; re-derive (will be null if winnerName no longer matches)
+    this.setState({ selectedWinner: this.winnerSlotFromStore(this.props) }); // eslint-disable-line react/no-did-update-set-state
+  } else if (p.winnerName !== c.winnerName) {
+    this.setState({ selectedWinner: this.winnerSlotFromStore(this.props) }); // eslint-disable-line react/no-did-update-set-state
+  }
+}
+
+  findMatch(num) {
+    let round = -1;
+    let index = -1;
+    this.props.knockouts.forEach((r, ri) => {
+      const idx = r.matches.findIndex((m) => m.num === num);
+      if (idx !== -1) { round = ri; index = idx; }
     });
+    return { round, index };
   }
 
-  updateKnockoutScores(homeScore, awayScore) {
-    // Find current match index in its round
-    const currentRound = this.props.round - 1;
-    const matchIndex = this.props.knockouts[currentRound].matches.findIndex(
-      match => match.num === this.props.data.num
-    );
-    
-    if (matchIndex !== -1) {
-      // Use the dedicated score update action
-      this.props.updateKnockoutScore(currentRound, matchIndex, homeScore, awayScore);
-    }
+  selectWinner(slot) {
+    const data = this.props.data;
+    if (!data.team1 || !data.team2 || !data.team1.name || !data.team2.name) return;
+    const winner = slot === 'team1' ? data.team1 : data.team2;
+    const loser = slot === 'team1' ? data.team2 : data.team1;
+    this.setState({ selectedWinner: slot });
+    this.routeWinner(winner, loser);
   }
 
-  handleInputChange(e) {
-    const value = parseInt(e.target.value, 10) || 0;
-    const name = e.target.name;
-    
-    if (name === 'homeScore') {
-      this.updateScores(value, this.state.awayScore);
-    } else if (name === 'awayScore') {
-      this.updateScores(this.state.homeScore, value);
-    }
-  }
+  routeWinner(winnerTeam, loserTeam) {
+    const num = this.props.data.num;
+    const teams = [{ name: winnerTeam.name, code: winnerTeam.code }];
 
-  handleKeyDown(e) {
-    if (e.keyCode === 13) {
-      this.changeScore(e);
-    }
-  }
+    // Third-place match winner is just 3rd place — don't route onward.
+    if (num === THIRD_PLACE_MATCH_NUM) return;
 
-  handleClick(e) {
-    this.changeScore(e);
-  }
-
-  calculateResult() {
-    // Only proceed if both teams exist
-    if (!this.props.data.team1.name || !this.props.data.team2.name) {
+    if (num === FINAL_MATCH_NUM) {
+      this.props.updateChampions(winnerTeam);
       return;
     }
 
-    // Use current state scores for calculation
-    const homeScore = this.state.homeScore;
-    const awayScore = this.state.awayScore;
-    
-    // Skip calculation if scores are equal (no winner determined)
-    if (homeScore === awayScore) {
-      return;
-    }
-    
-    // Compare result by 90 mins then extra time and penalties if needed
-    let result = homeScore - awayScore;
-    if (result === 0) {
-      result = (this.props.data.score1et || 0) - (this.props.data.score2et || 0);
-      if (result === 0) {
-        result = (this.props.data.score1p || 0) - (this.props.data.score2p || 0);
+    // Advance the winner to its next match (located by num).
+    if (this.props.first != null) {
+      const { round, index } = this.findMatch(this.props.first);
+      if (round !== -1) {
+        const home = 'team' + this.props.home;
+        this.checkFutureRounds(loserTeam);
+        this.props.updateKnockout(teams, index, round, home, []);
       }
     }
-    
-    // Only proceed if there's a clear winner
-    if (result === 0) {
-      return;
-    }
-    
-    const team = result > 0 ? this.props.data.team1 : this.props.data.team2;
-    const losingTeam = result > 0 ? this.props.data.team2 : this.props.data.team1;
-    const teams = [{ name: team.name, code: team.code }];
-    const scores = [{ score1: homeScore, score2: awayScore }];
 
-    if (this.props.data.num !== 64) {
-      let firstIndex;
-      // Find which match winner will play next
-      this.props.knockouts[this.props.round].matches.filter((el, i) => {
-        if (this.props.first === el.num) firstIndex = i;
-        return null;
-      });
-
-      const home = 'team' + this.props.home;
-      this.checkFutureRounds(losingTeam);
-      
-      // Update the next round with the winning team (but don't overwrite scores)
-      this.props.updateKnockout(teams, firstIndex, this.props.round, home, []);
-
-    } else {
-      // This is the final - update champion
-      this.props.updateChampions(team);
+    // Semifinal losers feed the third-place match.
+    if (num === 101 || num === 102) {
+      const { round, index } = this.findMatch(THIRD_PLACE_MATCH_NUM);
+      if (round !== -1) {
+        const slot = num === 101 ? 'team1' : 'team2';
+        this.props.updateKnockout(
+          [{ name: loserTeam.name, code: loserTeam.code }],
+          index, round, slot, [],
+        );
+      }
     }
   }
 
-  changeScore(e) {
-    // Check if user increased or decreased score
-    const incOrDec = e.target.className;
-    // Check using refs is the home or away team was clicked
-    const id = e.currentTarget.parentNode.id;
-    const ref = id === 'home' ? this.score1Input.current.value : this.score2Input.current.value;
-    // If value was empty convert to 0
-    const input = ref === '' ? 0 : parseInt(ref, 10);
-    // Add or remove 1 and prevent negative number;
-    let value = incOrDec === 'up' ? input + 1 : input - 1;
-    value = value < 0 ? 0 : value;
-
-    if (id === 'home') {
-      this.updateScores(value, this.state.awayScore);
-    } else {
-      this.updateScores(this.state.homeScore, value);
-    }
+  selectWinner(slot) {
+    const data = this.props.data;
+    if (!data.team1 || !data.team2 || !data.team1.name || !data.team2.name) return;
+    const winner = slot === 'team1' ? data.team1 : data.team2;
+    const loser = slot === 'team1' ? data.team2 : data.team1;
+    this.setState({ selectedWinner: slot });
+    const self = this.findMatch(data.num);                              // <-- add
+    if (self.round !== -1) this.props.setMatchWinner(self.round, self.index, winner.name); // <-- add
+    this.routeWinner(winner, loser);
   }
 
   checkFutureRounds(losingTeam) {
-    // Checking if the losing team was present in future rounds
     const knockouts = [...this.props.knockouts];
     const removeTeamArr = [];
     knockouts.forEach((round, i) => {
       if (i >= this.props.round) {
         round.matches.forEach((match, j) => {
-          if (losingTeam.name === match.team1.name) {
-            removeTeamArr.push({
-              name: losingTeam.name, round: i, match: j, home: 'team1',
-            });
+          if (match.team1 && losingTeam.name === match.team1.name) {
+            removeTeamArr.push({ name: losingTeam.name, round: i, match: j, home: 'team1' });
           }
-          if (losingTeam.name === match.team2.name) {
-            removeTeamArr.push({
-              name: losingTeam.name, round: i, match: j, home: 'team2',
-            });
+          if (match.team2 && losingTeam.name === match.team2.name) {
+            removeTeamArr.push({ name: losingTeam.name, round: i, match: j, home: 'team2' });
           }
         });
       }
     });
-    /* Remove teams if they are still in future rounds but user has changed previous results */
     if (removeTeamArr.length) {
       removeTeamArr.forEach((el) => {
         this.props.removeTeam(el.round, el.match, el.home);
@@ -220,17 +140,14 @@ class KnockoutMatch extends Component {
   }
 
   render() {
+    const isThirdPlace = this.props.data.num === THIRD_PLACE_MATCH_NUM;
     return (
-      <div className="knockout-match bracket-team">
+      <div className={'knockout-match bracket-team' + (isThirdPlace ? ' third-place-match' : '')}>
+        {isThirdPlace && <div className="third-place-label">Match for Third Place</div>}
         <KnockoutGameComponent
           data={this.props.data}
-          handleClick={this.handleClick}
-          handleKeyDown={this.handleKeyDown}
-          handleInputChange={this.handleInputChange}
-          score1Input={this.score1Input}
-          score2Input={this.score2Input}
-          homeScore={this.state.homeScore}
-          awayScore={this.state.awayScore}
+          selectedWinner={this.state.selectedWinner}
+          onSelect={this.selectWinner}
         />
       </div>
     );
@@ -240,15 +157,15 @@ class KnockoutMatch extends Component {
 KnockoutMatch.propTypes = {
   knockouts: PropTypes.array.isRequired,
   updateKnockout: PropTypes.func.isRequired,
-  updateKnockoutScore: PropTypes.func.isRequired,
   data: PropTypes.object.isRequired,
-  first: PropTypes.number.isRequired,
+  first: PropTypes.number,
   round: PropTypes.number.isRequired,
   home: PropTypes.number.isRequired,
   removeTeam: PropTypes.func.isRequired,
   champions: PropTypes.object.isRequired,
   updateChampions: PropTypes.func.isRequired,
   removeChampions: PropTypes.func.isRequired,
+  setMatchWinner: PropTypes.func.isRequired,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(KnockoutMatch);

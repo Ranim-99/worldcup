@@ -11,3 +11,5 @@ export const DATA_FETCHED = 'DATA_FETCHED';
 
 export const UPDATE_CHAMPIONS = 'UPDATE_CHAMPIONS';
 export const REMOVE_CHAMPIONS = 'REMOVE_CHAMPIONS';
+export const REPORT_THIRD = 'REPORT_THIRD';
+export const SET_WINNER = 'SET_WINNER';
